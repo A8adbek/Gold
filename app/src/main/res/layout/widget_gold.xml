@@ -1,31 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widgetBody" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:orientation="horizontal"
-    android:gravity="center_vertical" android:padding="14dp"
+    android:id="@+id/widgetBody"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="14dp"
     android:background="@drawable/widget_bg">
-    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
-        android:layout_weight="1" android:orientation="vertical"
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
         android:gravity="center_vertical">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="XAUUSD" android:textColor="#252525" android:textSize="14sp"/>
-        <TextView android:id="@+id/widgetTime" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:text="--:--:--"
-            android:textColor="#929292" android:textSize="12sp"/>
-        <TextView android:id="@+id/widgetPrice" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:text="—"
-            android:textColor="#171717" android:textSize="28sp" android:textStyle="normal"/>
-        <TextView android:id="@+id/widgetChange" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:text="+0.00"
-            android:textColor="@color/up" android:textSize="13sp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="XAUUSD"
+            android:textColor="#252525"
+            android:textSize="14sp"/>
+        <TextView
+            android:id="@+id/widgetTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="--:--:--"
+            android:textColor="#929292"
+            android:textSize="12sp"/>
+        <TextView
+            android:id="@+id/widgetPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ulanmoqda..."
+            android:textColor="#171717"
+            android:textSize="28sp"/>
+        <TextView
+            android:id="@+id/widgetChange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GLOBAL SPOT"
+            android:textColor="@color/up"
+            android:textSize="13sp"/>
     </LinearLayout>
-    <LinearLayout android:layout_width="52dp" android:layout_height="match_parent"
-        android:orientation="vertical" android:gravity="center_horizontal">
-        <ImageView android:layout_width="42dp" android:layout_height="42dp"
+
+    <RelativeLayout
+        android:layout_width="52dp"
+        android:layout_height="match_parent">
+        <ImageView
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
             android:src="@drawable/gold_badge"/>
-        <Space android:layout_width="1dp" android:layout_height="0dp" android:layout_weight="1"/>
-        <ImageView android:id="@+id/refresh" android:layout_width="28dp"
-            android:layout_height="28dp" android:padding="4dp"
+        <ImageView
+            android:id="@+id/refresh"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:padding="4dp"
             android:src="@drawable/ic_refresh"/>
-    </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>
