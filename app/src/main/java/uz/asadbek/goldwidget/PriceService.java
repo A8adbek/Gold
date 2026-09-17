@@ -20,7 +20,7 @@ public class PriceService extends Service {
         @Override public void run() {
             if (!running) return;
             new Thread(() -> fetchAndUpdate()).start();
-            if (!once) handler.postDelayed(this, 10_000);
+            if (!once) handler.postDelayed(this, 3_000);
         }
     };
 
@@ -29,7 +29,8 @@ public class PriceService extends Service {
     @Override public int onStartCommand(Intent intent, int flags, int id) {
         once = intent != null && intent.getBooleanExtra("once", false);
         running = true;
-        startForeground(1001, notification("XAUUSD ulanmoqda…"));
+        getSharedPreferences("gold", MODE_PRIVATE).edit().putBoolean("enabled", true).apply();
+        startForeground(1001, notification("Global XAUUSD ulanmoqda…"));
         handler.removeCallbacks(loop);
         handler.post(loop);
         return once ? START_NOT_STICKY : START_STICKY;
@@ -43,28 +44,23 @@ public class PriceService extends Service {
     private void fetchAndUpdate() {
         HttpURLConnection c = null;
         try {
-            URL u = new URL("https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?interval=1m&range=1d");
+            URL u = new URL("https://api.gold-api.com/price/XAU");
             c = (HttpURLConnection)u.openConnection();
-            c.setConnectTimeout(8000); c.setReadTimeout(8000);
-            c.setRequestProperty("User-Agent", "Mozilla/5.0 GoldWidget/1.0");
+            c.setConnectTimeout(7000); c.setReadTimeout(7000);
+            c.setRequestProperty("Accept", "application/json");
+            c.setRequestProperty("User-Agent", "GoldWidget-Android/2.0");
             StringBuilder b = new StringBuilder();
             try (BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream()))) {
                 String line; while ((line = r.readLine()) != null) b.append(line);
             }
-            JSONObject meta = new JSONObject(b.toString()).getJSONObject("chart")
-                .getJSONArray("result").getJSONObject(0).getJSONObject("meta");
-            double raw = meta.getDouble("regularMarketPrice");
-            double prevClose = meta.optDouble("chartPreviousClose", raw);
-            float adjustment = getSharedPreferences("gold", MODE_PRIVATE).getFloat("offset", 0f);
-            double price = raw + adjustment;
-            double change = price - (prevClose + adjustment);
+            JSONObject data = new JSONObject(b.toString());
+            double price = data.getDouble("price");
             String value = new DecimalFormat("#,##0.00").format(price);
-            String delta = (change >= 0 ? "+" : "") + new DecimalFormat("#,##0.00").format(change);
             String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
-            updateWidgets(value, delta, change >= 0, time);
+            updateWidgets(value, "GLOBAL SPOT · 3 soniya", true, time);
             getSystemService(NotificationManager.class).notify(1001, notification("XAUUSD  " + value));
         } catch (Exception e) {
-            updateWidgets("—", "Aloqa xatosi", false,
+            updateWidgets("—", "Global narxga ulanib bo‘lmadi", false,
                 new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
         } finally {
             if (c != null) c.disconnect();
@@ -72,15 +68,15 @@ public class PriceService extends Service {
         }
     }
 
-    private void updateWidgets(String price, String delta, boolean up, String time) {
+    private void updateWidgets(String price, String status, boolean ok, String time) {
         AppWidgetManager m = AppWidgetManager.getInstance(this);
         int[] ids = m.getAppWidgetIds(new ComponentName(this, GoldWidgetProvider.class));
         for (int id : ids) {
             RemoteViews v = new RemoteViews(getPackageName(), R.layout.widget_gold);
             v.setTextViewText(R.id.widgetPrice, price);
             v.setTextViewText(R.id.widgetTime, time);
-            v.setTextViewText(R.id.widgetChange, delta);
-            v.setTextColor(R.id.widgetChange, getColor(up ? R.color.up : R.color.down));
+            v.setTextViewText(R.id.widgetChange, status);
+            v.setTextColor(R.id.widgetChange, getColor(ok ? R.color.up : R.color.down));
             Intent refresh = new Intent(this, GoldWidgetProvider.class)
                 .setAction("uz.asadbek.goldwidget.REFRESH");
             PendingIntent rpi = PendingIntent.getBroadcast(this, id, refresh,
@@ -98,11 +94,11 @@ public class PriceService extends Service {
         PendingIntent pi = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class),
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         return new Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_gold)
-            .setContentTitle("Gold Widget").setContentText(text).setOngoing(true)
+            .setContentTitle("Gold Widget · 3 soniya").setContentText(text).setOngoing(true)
             .setContentIntent(pi).build();
     }
     private void createChannel() {
-        NotificationChannel ch = new NotificationChannel(CHANNEL, "XAUUSD jonli narxi",
+        NotificationChannel ch = new NotificationChannel(CHANNEL, "Global XAUUSD jonli narxi",
             NotificationManager.IMPORTANCE_LOW);
         getSystemService(NotificationManager.class).createNotificationChannel(ch);
     }
