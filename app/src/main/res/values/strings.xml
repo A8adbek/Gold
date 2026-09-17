@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gold Widget</string>
+    <string name="description">XAUUSD narxini bosh ekrandagi vidjetda har 10 soniyada yangilaydi. Hozir ochiq global XAUUSD oqimi ishlatiladi; keyin VPS orqali Exness MT5 manbasiga ulash mumkin.</string>
+    <string name="help">Vidjetni qo‘shish: bosh ekranni bosib turing → Vidjetlar → Gold Widget. Exness terminali bilan farq bo‘lsa, korrektirovka kiriting. Masalan, vidjet 4358.00 va Exness 4358.70 bo‘lsa: 0.70.</string>
+</resources>
