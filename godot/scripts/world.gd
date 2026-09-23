@@ -190,7 +190,7 @@ func _create_camera() -> void:
 func _process(delta: float) -> void:
 	if plane == null or camera == null: return
 	elapsed += delta
-	var input := Vector2(Input.get_axis("roll_left", "roll_right"), Input.get_axis("pitch_down", "pitch_up"))
+	var input: Vector2 = Vector2(Input.get_axis("roll_left", "roll_right"), Input.get_axis("pitch_down", "pitch_up"))
 	if touch_active: input = Vector2(touch_axis.x, -touch_axis.y)
 	var target_roll := -input.x * 0.42
 	var target_pitch := input.y * 0.22
@@ -203,7 +203,7 @@ func _process(delta: float) -> void:
 	velocity = velocity.lerp(target_velocity, 1.0 - exp(-delta * 2.6))
 	plane.position += velocity * delta
 	# Small natural paper-airframe flex, strongest during fast control changes.
-	var flex := sin(elapsed * 18.0) * (abs(input.x) + abs(input.y)) * 0.018
+	var flex: float = sin(elapsed * 18.0) * (abs(input.x) + abs(input.y)) * 0.018
 	if plane.get_child_count() > 0: plane.get_child(0).rotation.y = flex
 	var target := plane.position + Vector3(0, 1.15, 2.25)
 	camera.position = camera.position.lerp(target, 1.0 - exp(-delta * 8.0))
