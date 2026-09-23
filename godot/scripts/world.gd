@@ -169,10 +169,6 @@ func _create_plane() -> void:
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	body.material_override = mat
 	plane.add_child(body)
-	left_wing = _create_flex_wing(-1.0, Color("#fffaf0"))
-	right_wing = _create_flex_wing(1.0, Color("#e7e1d2"))
-	plane.add_child(left_wing)
-	plane.add_child(right_wing)
 
 func _create_flex_wing(side: float, color: Color) -> Node3D:
 	var hinge := Node3D.new()
@@ -565,6 +561,9 @@ func _process(delta: float) -> void:
 	var target_pitch := input.y * 0.22
 	plane.rotation.z = lerp(plane.rotation.z, target_roll, delta * 5.0)
 	plane.rotation.x = lerp(plane.rotation.x, target_pitch, delta * 4.0)
+	# Banked aircraft steering: horizontal drag changes heading, so the plane
+	# can freely navigate across the whole stationary map instead of following a rail.
+	plane.rotation.y += input.x * delta * 0.95
 	var forward := Vector3(0, 0, -1).rotated(Vector3.RIGHT, plane.rotation.x).rotated(Vector3.UP, plane.rotation.y)
 	var lift: float = clampf(airspeed * airspeed * 0.035, 1.5, 3.4)
 	var gravity := Vector3.DOWN * 2.8
@@ -572,15 +571,6 @@ func _process(delta: float) -> void:
 	velocity = velocity.lerp(target_velocity, 1.0 - exp(-delta * 2.6))
 	plane.position += velocity * delta
 	_check_ground_contact(input)
-	# Natural paper-airframe flex: the two wings react asymmetrically to turns,
-	# then spring back toward neutral instead of snapping into place.
-	var speed_factor: float = clampf(velocity.length() / 14.0, 0.0, 1.0)
-	var flutter: float = sin(elapsed * (10.0 + speed_factor * 7.0)) * 0.025 * speed_factor
-	var turn_flex: float = clampf(abs(input.x) * 0.16 + abs(velocity.y) * 0.012, 0.0, 0.18)
-	var left_target: float = flutter + input.x * 0.12 + input.y * 0.035 + turn_flex * 0.18
-	var right_target: float = -flutter - input.x * 0.12 - input.y * 0.035 - turn_flex * 0.18
-	if left_wing: left_wing.rotation.z = lerp(left_wing.rotation.z, left_target, 1.0 - exp(-delta * 7.0))
-	if right_wing: right_wing.rotation.z = lerp(right_wing.rotation.z, right_target, 1.0 - exp(-delta * 7.0))
 	var target := plane.position + Vector3(0, 1.35, 3.15)
 	camera.position = camera.position.lerp(target, 1.0 - exp(-delta * 8.0))
 	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
