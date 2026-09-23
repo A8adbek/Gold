@@ -38,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: RedDuneValley-3D-APK
-          path: godot/.builds/**
+          path: /home/runner/.local/share/godot/archives/Android.zip
