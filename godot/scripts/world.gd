@@ -3,8 +3,8 @@ extends Node3D
 const MAP_RADIUS := 360.0
 const GRID := 96
 const CELL := 7.5
-const SAND := Color("#c96b43")
-const SAND_LIGHT := Color("#e19a61")
+const SAND := Color("#d18f6d")
+const SAND_LIGHT := Color("#e3b08a")
 
 var plane: Node3D
 var camera: Camera3D
@@ -95,12 +95,12 @@ func _render_environment() -> void:
 	var world := WorldEnvironment.new()
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("#75b9d5")
+	env.background_color = Color("#b9cbd1")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("#f5d6ad")
+	env.ambient_light_color = Color("#f8d9bc")
 	env.ambient_light_energy = 0.72
 	env.fog_enabled = true
-	env.fog_light_color = Color("#d9b99b")
+	env.fog_light_color = Color("#e6c4aa")
 	env.fog_light_energy = 0.55
 	env.fog_density = 0.004
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
@@ -153,6 +153,7 @@ func _create_terrain() -> void:
 func _create_plane() -> void:
 	plane = Node3D.new()
 	plane.position = Vector3(0, 9, 0)
+	plane.scale = Vector3(0.72, 0.72, 0.72)
 	add_child(plane)
 	var body := MeshInstance3D.new()
 	body.mesh = _paper_plane_mesh()
@@ -340,7 +341,7 @@ func _create_grass(pos: Vector3, scale: float) -> void:
 func _create_camera() -> void:
 	camera = Camera3D.new()
 	# Close version-1 chase view: the paper plane stays large and readable.
-	camera.position = Vector3(0, 1.15, 2.25)
+	camera.position = Vector3(0, 1.35, 3.15)
 	camera.look_at_from_position(camera.position, plane.position)
 	add_child(camera)
 	camera.current = true
@@ -523,7 +524,7 @@ func _process(delta: float) -> void:
 	var right_target: float = -flutter - input.x * 0.12 - input.y * 0.035 - turn_flex * 0.18
 	if left_wing: left_wing.rotation.z = lerp(left_wing.rotation.z, left_target, 1.0 - exp(-delta * 7.0))
 	if right_wing: right_wing.rotation.z = lerp(right_wing.rotation.z, right_target, 1.0 - exp(-delta * 7.0))
-	var target := plane.position + Vector3(0, 1.15, 2.25)
+	var target := plane.position + Vector3(0, 1.35, 3.15)
 	camera.position = camera.position.lerp(target, 1.0 - exp(-delta * 8.0))
 	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
 	if speed_label:
