@@ -22,6 +22,8 @@ var menu_layer: CanvasLayer
 var pause_overlay: Control
 var pause_button: Button
 var settings_panel: Control
+var left_wing: Node3D
+var right_wing: Node3D
 var game_started := false
 var paused := false
 var wind_playback: AudioStreamGeneratorPlayback
@@ -155,6 +157,37 @@ func _create_plane() -> void:
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	body.material_override = mat
 	plane.add_child(body)
+	left_wing = _create_flex_wing(-1.0, Color("#fffaf0"))
+	right_wing = _create_flex_wing(1.0, Color("#e7e1d2"))
+	plane.add_child(left_wing)
+	plane.add_child(right_wing)
+
+func _create_flex_wing(side: float, color: Color) -> Node3D:
+	var hinge := Node3D.new()
+	hinge.position = Vector3(0, 0.035, 0.56)
+	var wing := MeshInstance3D.new()
+	wing.mesh = _flex_wing_mesh(side)
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.72
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	wing.material_override = material
+	hinge.add_child(wing)
+	return hinge
+
+func _flex_wing_mesh(side: float) -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	var vertices := PackedVector3Array([
+		Vector3(0, 0, 0),
+		Vector3(side * 1.05, -0.012, 0.18),
+		Vector3(side * 0.05, 0.09, -1.30)
+	])
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_INDEX] = PackedInt32Array([0, 1, 2])
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
 
 func _paper_plane_mesh() -> ArrayMesh:
 	# Folded paper silhouette, nose points toward negative Z.
@@ -408,9 +441,15 @@ func _process(delta: float) -> void:
 	var target_velocity := forward * airspeed + Vector3(0, lift, 0) + gravity
 	velocity = velocity.lerp(target_velocity, 1.0 - exp(-delta * 2.6))
 	plane.position += velocity * delta
-	# Small natural paper-airframe flex, strongest during fast control changes.
-	var flex: float = sin(elapsed * 18.0) * (abs(input.x) + abs(input.y)) * 0.018
-	if plane.get_child_count() > 0: plane.get_child(0).rotation.y = flex
+	# Natural paper-airframe flex: the two wings react asymmetrically to turns,
+	# then spring back toward neutral instead of snapping into place.
+	var speed_factor: float = clampf(velocity.length() / 14.0, 0.0, 1.0)
+	var flutter: float = sin(elapsed * (10.0 + speed_factor * 7.0)) * 0.025 * speed_factor
+	var turn_flex: float = clampf(abs(input.x) * 0.16 + abs(velocity.y) * 0.012, 0.0, 0.18)
+	var left_target: float = flutter + input.x * 0.12 + input.y * 0.035 + turn_flex * 0.18
+	var right_target: float = -flutter - input.x * 0.12 - input.y * 0.035 - turn_flex * 0.18
+	if left_wing: left_wing.rotation.z = lerp(left_wing.rotation.z, left_target, 1.0 - exp(-delta * 7.0))
+	if right_wing: right_wing.rotation.z = lerp(right_wing.rotation.z, right_target, 1.0 - exp(-delta * 7.0))
 	var target := plane.position + Vector3(0, 1.15, 2.25)
 	camera.position = camera.position.lerp(target, 1.0 - exp(-delta * 8.0))
 	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
