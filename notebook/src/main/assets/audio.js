@@ -1,18 +1,19 @@
 (() => {
   'use strict';
   class FlightAudio {
-    constructor() { this.ctx=null; this.master=null; this.music=null; this.sfx=null; this.windGain=null; this.windFilter=null; this.enabled=true; this.lastWhoosh=0; }
+    constructor() { this.ctx=null; this.master=null; this.music=null; this.sfx=null; this.windGain=null; this.windFilter=null; this.musicEl=null; this.enabled=true; this.lastWhoosh=0; }
     ensure() {
       if (this.ctx) return true;
       const C=window.AudioContext||window.webkitAudioContext; if(!C) return false;
       try {
         this.ctx=new C(); this.master=this.ctx.createGain(); this.master.gain.value=.55; this.master.connect(this.ctx.destination);
-        this.music=this.ctx.createGain(); this.music.gain.value=.28; this.music.connect(this.master);
+        this.music=this.ctx.createGain(); this.music.gain.value=.06; this.music.connect(this.master);
         this.sfx=this.ctx.createGain(); this.sfx.gain.value=.52; this.sfx.connect(this.master);
+        this.musicEl=new Audio('cinematic-desert-1.mp3'); this.musicEl.loop=true; this.musicEl.preload='auto'; this.musicEl.volume=.42;
         this.createWind(); this.startMusic(); return true;
       } catch(e) { this.ctx=null; return false; }
     }
-    unlock() { if(!this.enabled||!this.ensure())return; if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{}); }
+    unlock() { if(!this.enabled||!this.ensure())return; if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{}); if(this.musicEl)this.musicEl.play().catch(()=>{}); }
     createWind() {
       const size=this.ctx.sampleRate*2, b=this.ctx.createBuffer(1,size,this.ctx.sampleRate), d=b.getChannelData(0); let last=0;
       for(let i=0;i<size;i++){last=last*.985+(Math.random()*2-1)*.15;d[i]=last;}
@@ -33,7 +34,7 @@
     }
     launch(power=.6){this.unlock();if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});this.whoosh(.5+power*.45);}
     update(flight,state){if(!this.enabled||!this.ctx)return;const t=this.ctx.currentTime,active=state==='playing'&&flight.status==='flying',speed=Math.max(0,Math.min(1,(flight.speed-3)/7));this.windGain.gain.setTargetAtTime(active?.018+speed*.095:0,t,.12);this.windFilter.frequency.setTargetAtTime(380+speed*700,t,.18);if(active&&(Math.abs(flight.rollRate)>.95||Math.abs(flight.pitchRate)>1.15))this.whoosh(Math.min(1,Math.max(Math.abs(flight.rollRate),Math.abs(flight.pitchRate))/4));}
-    toggle(){this.enabled=!this.enabled;if(this.ctx)this.master.gain.setTargetAtTime(this.enabled?.55:0,this.ctx.currentTime,.08);return this.enabled;}
+    toggle(){this.enabled=!this.enabled;if(this.ctx)this.master.gain.setTargetAtTime(this.enabled?.55:0,this.ctx.currentTime,.08);if(this.musicEl){if(this.enabled)this.musicEl.play().catch(()=>{});else this.musicEl.pause();}return this.enabled;}
   }
   window.NotebookAudio=new FlightAudio();
 })();
