@@ -17,11 +17,21 @@ var touch_active := false
 
 func _ready() -> void:
 	_render_environment()
+	_create_audio()
 	_create_terrain()
 	_create_desert_details()
 	_create_plane()
 	_create_camera()
 	set_process_unhandled_input(true)
+
+func _create_audio() -> void:
+	var music := AudioStreamPlayer.new()
+	music.name = "DesertMusic"
+	music.stream = load("res://assets/cinematic-desert-1.mp3")
+	music.volume_db = -8.0
+	music.autoplay = true
+	add_child(music)
+	music.finished.connect(func(): music.play())
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
