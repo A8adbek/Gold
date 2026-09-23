@@ -5,6 +5,7 @@ const GRID := 96
 const CELL := 7.5
 const SAND := Color("#d18f6d")
 const SAND_LIGHT := Color("#e3b08a")
+const DEM_SIZE := 3601
 
 var plane: Node3D
 var camera: Camera3D
@@ -33,10 +34,14 @@ var wind_playback: AudioStreamGeneratorPlayback
 var turn_playback: AudioStreamGeneratorPlayback
 var audio_phase := 0.0
 var audio_mix_rate := 22050.0
+var dem_data := PackedInt32Array()
+var dem_min := 0
+var dem_max := 1
 
 func _ready() -> void:
 	_render_environment()
 	_create_audio()
+	_load_elevation_tile()
 	_create_terrain()
 	_create_desert_details()
 	_create_canyon_details()
@@ -115,7 +120,29 @@ func _render_environment() -> void:
 	add_child(sun)
 
 func _height(x: float, z: float) -> float:
-	return sin(x * 0.035) * 3.2 + sin(z * 0.027 + x * 0.012) * 4.5 + sin((x + z) * 0.085) * 0.8
+	var detail := sin(x * 0.035) * 3.2 + sin(z * 0.027 + x * 0.012) * 4.5 + sin((x + z) * 0.085) * 0.8
+	if dem_data.is_empty(): return detail
+	var tx := clampi(int((x + 360.0) / 720.0 * float(DEM_SIZE - 1)), 0, DEM_SIZE - 1)
+	var tz := clampi(int((z + 360.0) / 720.0 * float(DEM_SIZE - 1)), 0, DEM_SIZE - 1)
+	var raw := float(dem_data[tz * DEM_SIZE + tx])
+	var terrain_level := ((raw - float(dem_min)) / max(1.0, float(dem_max - dem_min))) * 34.0 - 10.0
+	return terrain_level + detail * 0.18
+
+func _load_elevation_tile() -> void:
+	var path := "res://assets/maps/N40E069.hgt"
+	if not FileAccess.file_exists(path): return
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null: return
+	var sample_count := DEM_SIZE * DEM_SIZE
+	dem_data.resize(sample_count)
+	dem_min = 32767
+	dem_max = -32768
+	for i in range(sample_count):
+		var value := file.get_16()
+		if value >= 32768: value -= 65536
+		dem_data[i] = value
+		dem_min = mini(dem_min, value)
+		dem_max = maxi(dem_max, value)
 
 func _create_terrain() -> void:
 	var mesh := ArrayMesh.new()
@@ -147,7 +174,7 @@ func _create_terrain() -> void:
 	arrays[Mesh.ARRAY_INDEX] = indices
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	var material := StandardMaterial3D.new()
-	material.albedo_texture = load("res://assets/desert_sand.svg")
+	material.albedo_texture = _texture("res://assets/hires/sand_01_diff.jpg", "res://assets/desert_sand.svg")
 	material.albedo_color = Color.WHITE
 	material.vertex_color_use_as_albedo = false
 	material.roughness = 0.94
@@ -259,7 +286,7 @@ func _create_dune_ridges() -> void:
 		dune.scale = Vector3(1.8, 0.42, 2.8)
 		dune.position = Vector3(x, y, z)
 		dune.rotation.y = rng.randf_range(-0.8, 0.8)
-		dune.material_override = _material(Color("#ffffff"), "res://assets/desert_sand.svg")
+		dune.material_override = _material(Color("#ffffff"), "res://assets/hires/sand_01_diff.jpg")
 		add_child(dune)
 
 func _create_stratified_cliffs() -> void:
@@ -284,7 +311,7 @@ func _create_stratified_cliffs() -> void:
 			mesh.radial_segments = 8
 			slab.mesh = mesh
 			slab.position.y = layer * 3.0 + mesh.height * 0.5
-			slab.material_override = _material(Color("#ffffff"), "res://assets/canyon_rock.svg")
+			slab.material_override = _material(Color("#ffffff"), "res://assets/hires/rock_08_diff.jpg")
 			root.add_child(slab)
 
 func _create_landmark_details() -> void:
@@ -363,9 +390,13 @@ func _create_mesa(pos: Vector3, radius: float, height: float) -> void:
 func _material(color: Color, texture_path: String = "") -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	if texture_path != "": mat.albedo_texture = load(texture_path)
+	if texture_path != "" and ResourceLoader.exists(texture_path): mat.albedo_texture = load(texture_path)
 	mat.roughness = .92
 	return mat
+
+func _texture(preferred: String, fallback: String) -> Texture2D:
+	if ResourceLoader.exists(preferred): return load(preferred)
+	return load(fallback)
 
 func _create_cactus(pos: Vector3, scale: float) -> void:
 	var root := Node3D.new()
