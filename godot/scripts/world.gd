@@ -21,11 +21,14 @@ var hud_layer: CanvasLayer
 var menu_layer: CanvasLayer
 var pause_overlay: Control
 var pause_button: Button
+var pause_title: Label
+var overlay_primary: Button
 var settings_panel: Control
 var left_wing: Node3D
 var right_wing: Node3D
 var game_started := false
 var paused := false
+var flight_state := "menu"
 var wind_playback: AudioStreamGeneratorPlayback
 var turn_playback: AudioStreamGeneratorPlayback
 var audio_phase := 0.0
@@ -311,15 +314,15 @@ func _create_hud() -> void:
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.color = Color(0.02, 0.03, 0.04, 0.68)
 	pause_overlay.add_child(shade)
-	var paused_title := Label.new()
-	paused_title.text = "PAUSED"
-	paused_title.position = Vector2(278, 390)
-	paused_title.add_theme_font_size_override("font_size", 28)
-	paused_title.add_theme_color_override("font_color", Color("#fff4df"))
-	pause_overlay.add_child(paused_title)
-	var resume := _ui_button("RESUME", Vector2(250, 475), Vector2(220, 58))
-	pause_overlay.add_child(resume)
-	resume.pressed.connect(_toggle_pause)
+	pause_title = Label.new()
+	pause_title.text = "PAUSED"
+	pause_title.position = Vector2(278, 390)
+	pause_title.add_theme_font_size_override("font_size", 28)
+	pause_title.add_theme_color_override("font_color", Color("#fff4df"))
+	pause_overlay.add_child(pause_title)
+	overlay_primary = _ui_button("RESUME", Vector2(250, 475), Vector2(220, 58))
+	pause_overlay.add_child(overlay_primary)
+	overlay_primary.pressed.connect(_overlay_primary_pressed)
 	var menu := _ui_button("MAIN MENU", Vector2(250, 550), Vector2(220, 58))
 	pause_overlay.add_child(menu)
 	menu.pressed.connect(_return_to_menu)
@@ -385,22 +388,42 @@ func _ui_button(text: String, pos: Vector2, size: Vector2) -> Button:
 func _start_game() -> void:
 	game_started = true
 	paused = false
+	flight_state = "flying"
 	menu_layer.visible = false
 	hud_layer.visible = true
 	pause_overlay.visible = false
 	pause_button.text = "PAUSE"
+	pause_title.text = "PAUSED"
+	overlay_primary.text = "RESUME"
 	plane.position = Vector3(0, 9, 0)
 	velocity = Vector3(0, 0, -8.0)
 
 func _toggle_pause() -> void:
-	if not game_started: return
+	if not game_started or flight_state != "flying": return
 	paused = not paused
 	pause_overlay.visible = paused
 	pause_button.text = "RESUME" if paused else "PAUSE"
+	pause_title.text = "PAUSED"
+	overlay_primary.text = "RESUME"
+
+func _overlay_primary_pressed() -> void:
+	if flight_state == "landed" or flight_state == "crashed":
+		_start_game()
+	else:
+		_toggle_pause()
+
+func _finish_flight(result: String) -> void:
+	flight_state = result.to_lower()
+	paused = true
+	pause_overlay.visible = true
+	pause_title.text = result
+	overlay_primary.text = "RESTART"
+	pause_button.text = "PAUSE"
 
 func _return_to_menu() -> void:
 	game_started = false
 	paused = false
+	flight_state = "menu"
 	hud_layer.visible = false
 	pause_overlay.visible = false
 	menu_layer.visible = true
@@ -441,6 +464,7 @@ func _process(delta: float) -> void:
 	var target_velocity := forward * airspeed + Vector3(0, lift, 0) + gravity
 	velocity = velocity.lerp(target_velocity, 1.0 - exp(-delta * 2.6))
 	plane.position += velocity * delta
+	_check_ground_contact(input)
 	# Natural paper-airframe flex: the two wings react asymmetrically to turns,
 	# then spring back toward neutral instead of snapping into place.
 	var speed_factor: float = clampf(velocity.length() / 14.0, 0.0, 1.0)
@@ -455,6 +479,18 @@ func _process(delta: float) -> void:
 	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
 	if speed_label:
 		speed_label.text = "SPEED  %.1f m/s" % velocity.length()
+
+func _check_ground_contact(input: Vector2) -> void:
+	var ground_y: float = _height(plane.position.x, plane.position.z)
+	var clearance: float = plane.position.y - ground_y
+	if clearance > 0.75: return
+	plane.position.y = ground_y + 0.75
+	var hard_impact: bool = velocity.y < -2.2 or abs(input.x) > 0.82 or abs(input.y) > 0.82
+	velocity = Vector3.ZERO
+	if hard_impact:
+		_finish_flight("CRASHED")
+	else:
+		_finish_flight("LANDED")
 
 func _update_flight_audio(delta: float, input: Vector2) -> void:
 	if wind_playback == null or turn_playback == null: return
