@@ -17,6 +17,10 @@ var touch_active := false
 var speed_label: Label
 var altitude_label: Label
 var distance_label: Label
+var wind_playback: AudioStreamGeneratorPlayback
+var turn_playback: AudioStreamGeneratorPlayback
+var audio_phase := 0.0
+var audio_mix_rate := 22050.0
 
 func _ready() -> void:
 	_render_environment()
@@ -37,6 +41,27 @@ func _create_audio() -> void:
 	music.autoplay = true
 	add_child(music)
 	music.finished.connect(func(): music.play())
+	# Lightweight procedural audio keeps the APK small while adding flight feedback.
+	var wind_stream := AudioStreamGenerator.new()
+	wind_stream.mix_rate = audio_mix_rate
+	wind_stream.buffer_length = 0.18
+	var wind := AudioStreamPlayer.new()
+	wind.name = "WindAudio"
+	wind.stream = wind_stream
+	wind.volume_db = -12.0
+	add_child(wind)
+	wind.play()
+	wind_playback = wind.get_stream_playback()
+	var turn_stream := AudioStreamGenerator.new()
+	turn_stream.mix_rate = audio_mix_rate
+	turn_stream.buffer_length = 0.12
+	var turn := AudioStreamPlayer.new()
+	turn.name = "TurnAudio"
+	turn.stream = turn_stream
+	turn.volume_db = -17.0
+	add_child(turn)
+	turn.play()
+	turn_playback = turn.get_stream_playback()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
@@ -270,6 +295,7 @@ func _process(delta: float) -> void:
 	elapsed += delta
 	var input: Vector2 = Vector2(Input.get_axis("roll_left", "roll_right"), Input.get_axis("pitch_down", "pitch_up"))
 	if touch_active: input = Vector2(touch_axis.x, -touch_axis.y)
+	_update_flight_audio(delta, input)
 	var target_roll := -input.x * 0.42
 	var target_pitch := input.y * 0.22
 	plane.rotation.z = lerp(plane.rotation.z, target_roll, delta * 5.0)
@@ -290,3 +316,20 @@ func _process(delta: float) -> void:
 		speed_label.text = "SPEED  %.1f m/s" % velocity.length()
 		altitude_label.text = "ALTITUDE  %.1f m" % max(0.0, plane.position.y - _height(plane.position.x, plane.position.z))
 		distance_label.text = "DISTANCE  %.0f m" % max(0.0, -plane.position.z)
+
+func _update_flight_audio(delta: float, input: Vector2) -> void:
+	if wind_playback == null or turn_playback == null: return
+	audio_phase += delta
+	var frames := clampi(int(delta * audio_mix_rate * 1.6), 160, 900)
+	var speed_factor: float = clampf(velocity.length() / 14.0, 0.0, 1.0)
+	var turn_factor: float = clampf(input.length(), 0.0, 1.0)
+	for i in range(frames):
+		var t := audio_phase + float(i) / audio_mix_rate
+		# Layered filtered-like tones make a soft air rush without a bundled sample.
+		var rush := sin(t * 93.0) * 0.12 + sin(t * 157.0) * 0.07 + sin(t * 241.0) * 0.04
+		var wind_sample := rush * (0.16 + speed_factor * 0.30)
+		wind_playback.push_frame(Vector2(wind_sample, wind_sample * 0.97))
+		var bank := sin(t * 42.0) * turn_factor * 0.11
+		var click := sin(t * (220.0 + turn_factor * 180.0)) * turn_factor * 0.035
+		turn_playback.push_frame(Vector2(bank + click, -bank + click))
+
