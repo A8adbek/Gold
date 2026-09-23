@@ -17,6 +17,13 @@ var touch_active := false
 var speed_label: Label
 var altitude_label: Label
 var distance_label: Label
+var hud_layer: CanvasLayer
+var menu_layer: CanvasLayer
+var pause_overlay: Control
+var pause_button: Button
+var settings_panel: Control
+var game_started := false
+var paused := false
 var wind_playback: AudioStreamGeneratorPlayback
 var turn_playback: AudioStreamGeneratorPlayback
 var audio_phase := 0.0
@@ -31,6 +38,8 @@ func _ready() -> void:
 	_create_plane()
 	_create_camera()
 	_create_hud()
+	_create_menu()
+	hud_layer.visible = false
 	set_process_unhandled_input(true)
 
 func _create_audio() -> void:
@@ -254,32 +263,127 @@ func _create_camera() -> void:
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 20
+	hud_layer = layer
 	add_child(layer)
+	speed_label = _hud_label(layer, Vector2(22, 28), "SPEED  0.0 m/s")
+	altitude_label = _hud_label(layer, Vector2(22, 52), "ALTITUDE  0.0 m")
+	distance_label = _hud_label(layer, Vector2(22, 76), "DISTANCE  0 m")
+	pause_button = _ui_button("PAUSE", Vector2(555, 24), Vector2(140, 52))
+	layer.add_child(pause_button)
+	pause_button.pressed.connect(_toggle_pause)
+	pause_overlay = Control.new()
+	pause_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pause_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	pause_overlay.visible = false
+	layer.add_child(pause_overlay)
+	var shade := ColorRect.new()
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.color = Color(0.02, 0.03, 0.04, 0.68)
+	pause_overlay.add_child(shade)
+	var paused_title := Label.new()
+	paused_title.text = "PAUSED"
+	paused_title.position = Vector2(278, 390)
+	paused_title.add_theme_font_size_override("font_size", 28)
+	paused_title.add_theme_color_override("font_color", Color("#fff4df"))
+	pause_overlay.add_child(paused_title)
+	var resume := _ui_button("RESUME", Vector2(250, 475), Vector2(220, 58))
+	pause_overlay.add_child(resume)
+	resume.pressed.connect(_toggle_pause)
+	var menu := _ui_button("MAIN MENU", Vector2(250, 550), Vector2(220, 58))
+	pause_overlay.add_child(menu)
+	menu.pressed.connect(_return_to_menu)
+
+func _create_menu() -> void:
+	menu_layer = CanvasLayer.new()
+	menu_layer.layer = 30
+	add_child(menu_layer)
+	var background := ColorRect.new()
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.color = Color("#c8754b")
+	menu_layer.add_child(background)
 	var title := Label.new()
 	title.text = "RED DUNE VALLEY"
-	title.position = Vector2(22, 22)
-	title.add_theme_font_size_override("font_size", 14)
+	title.position = Vector2(145, 250)
+	title.add_theme_font_size_override("font_size", 30)
 	title.add_theme_color_override("font_color", Color("#fff4df"))
-	layer.add_child(title)
+	menu_layer.add_child(title)
 	var subtitle := Label.new()
-	subtitle.text = "PAPER FLIGHT  /  OPEN DESERT"
-	subtitle.position = Vector2(23, 44)
-	subtitle.add_theme_font_size_override("font_size", 9)
+	subtitle.text = "PAPER FLIGHT"
+	subtitle.position = Vector2(275, 298)
+	subtitle.add_theme_font_size_override("font_size", 14)
 	subtitle.add_theme_color_override("font_color", Color("#f4d2ae"))
-	layer.add_child(subtitle)
-	speed_label = _hud_label(layer, Vector2(22, 84), "SPEED  0.0 m/s")
-	altitude_label = _hud_label(layer, Vector2(22, 108), "ALTITUDE  0.0 m")
-	distance_label = _hud_label(layer, Vector2(22, 132), "DISTANCE  0 m")
-	var hint := Label.new()
-	hint.text = "DRAG TO STEER  •  RELEASE TO GLIDE"
-	hint.position = Vector2(22, 0)
-	hint.anchor_top = 1.0
-	hint.anchor_bottom = 1.0
-	hint.offset_top = -34
-	hint.offset_bottom = -16
-	hint.add_theme_font_size_override("font_size", 9)
-	hint.add_theme_color_override("font_color", Color("#fff4df"))
-	layer.add_child(hint)
+	menu_layer.add_child(subtitle)
+	var play := _ui_button("PLAY", Vector2(220, 455), Vector2(280, 68))
+	menu_layer.add_child(play)
+	play.pressed.connect(_start_game)
+	var settings := _ui_button("SETTINGS", Vector2(220, 540), Vector2(280, 68))
+	menu_layer.add_child(settings)
+	settings.pressed.connect(_show_settings)
+	var panel := Panel.new()
+	panel.position = Vector2(80, 350)
+	panel.size = Vector2(560, 410)
+	panel.visible = false
+	menu_layer.add_child(panel)
+	settings_panel = panel
+	var settings_title := Label.new()
+	settings_title.text = "SETTINGS"
+	settings_title.position = Vector2(195, 42)
+	settings_title.add_theme_font_size_override("font_size", 25)
+	settings_title.add_theme_color_override("font_color", Color("#fff4df"))
+	panel.add_child(settings_title)
+	var info := Label.new()
+	info.text = "SOUND   ON\nCONTROL  DRAG TO STEER\nCAMERA   CLOSE CHASE"
+	info.position = Vector2(110, 125)
+	info.add_theme_font_size_override("font_size", 15)
+	info.add_theme_color_override("font_color", Color("#fff4df"))
+	panel.add_child(info)
+	var back := _ui_button("BACK", Vector2(170, 295), Vector2(220, 58))
+	panel.add_child(back)
+	back.pressed.connect(_hide_settings)
+
+func _ui_button(text: String, pos: Vector2, size: Vector2) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.position = pos
+	button.size = size
+	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_color_override("font_color", Color("#fff4df"))
+	button.add_theme_color_override("font_hover_color", Color("#ffffff"))
+	return button
+
+func _start_game() -> void:
+	game_started = true
+	paused = false
+	menu_layer.visible = false
+	hud_layer.visible = true
+	pause_overlay.visible = false
+	pause_button.text = "PAUSE"
+	plane.position = Vector3(0, 9, 0)
+	velocity = Vector3(0, 0, -8.0)
+
+func _toggle_pause() -> void:
+	if not game_started: return
+	paused = not paused
+	pause_overlay.visible = paused
+	pause_button.text = "RESUME" if paused else "PAUSE"
+
+func _return_to_menu() -> void:
+	game_started = false
+	paused = false
+	hud_layer.visible = false
+	pause_overlay.visible = false
+	menu_layer.visible = true
+	pause_button.text = "PAUSE"
+
+func _show_settings() -> void:
+	for child in menu_layer.get_children():
+		if child is Control: child.visible = false
+	settings_panel.visible = true
+
+func _hide_settings() -> void:
+	for child in menu_layer.get_children():
+		if child is Control: child.visible = true
+	settings_panel.visible = false
 
 func _hud_label(layer: CanvasLayer, pos: Vector2, text: String) -> Label:
 	var label := Label.new()
@@ -291,7 +395,7 @@ func _hud_label(layer: CanvasLayer, pos: Vector2, text: String) -> Label:
 	return label
 
 func _process(delta: float) -> void:
-	if plane == null or camera == null: return
+	if plane == null or camera == null or not game_started or paused: return
 	elapsed += delta
 	var input: Vector2 = Vector2(Input.get_axis("roll_left", "roll_right"), Input.get_axis("pitch_down", "pitch_up"))
 	if touch_active: input = Vector2(touch_axis.x, -touch_axis.y)
