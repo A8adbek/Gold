@@ -6,9 +6,9 @@
       if (this.ctx) return true;
       const C=window.AudioContext||window.webkitAudioContext; if(!C) return false;
       try {
-        this.ctx=new C(); this.master=this.ctx.createGain(); this.master.gain.value=.42; this.master.connect(this.ctx.destination);
-        this.music=this.ctx.createGain(); this.music.gain.value=.17; this.music.connect(this.master);
-        this.sfx=this.ctx.createGain(); this.sfx.gain.value=.46; this.sfx.connect(this.master);
+        this.ctx=new C(); this.master=this.ctx.createGain(); this.master.gain.value=.55; this.master.connect(this.ctx.destination);
+        this.music=this.ctx.createGain(); this.music.gain.value=.28; this.music.connect(this.master);
+        this.sfx=this.ctx.createGain(); this.sfx.gain.value=.52; this.sfx.connect(this.master);
         this.createWind(); this.startMusic(); return true;
       } catch(e) { this.ctx=null; return false; }
     }
@@ -31,9 +31,9 @@
       const n=Math.floor(this.ctx.sampleRate*.24),b=this.ctx.createBuffer(1,n,this.ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
       const s=this.ctx.createBufferSource(),f=this.ctx.createBiquadFilter(),g=this.ctx.createGain();s.buffer=b;f.type='bandpass';f.Q.value=.75;f.frequency.setValueAtTime(320,t);f.frequency.exponentialRampToValueAtTime(1250+amount*500,t+.18);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12*amount,t+.035);g.gain.exponentialRampToValueAtTime(.001,t+.23);s.connect(f).connect(g).connect(this.sfx);s.start(t);s.stop(t+.25);
     }
-    launch(power=.6){this.unlock();this.whoosh(.5+power*.45);}
+    launch(power=.6){this.unlock();if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});this.whoosh(.5+power*.45);}
     update(flight,state){if(!this.enabled||!this.ctx)return;const t=this.ctx.currentTime,active=state==='playing'&&flight.status==='flying',speed=Math.max(0,Math.min(1,(flight.speed-3)/7));this.windGain.gain.setTargetAtTime(active?.018+speed*.095:0,t,.12);this.windFilter.frequency.setTargetAtTime(380+speed*700,t,.18);if(active&&(Math.abs(flight.rollRate)>.95||Math.abs(flight.pitchRate)>1.15))this.whoosh(Math.min(1,Math.max(Math.abs(flight.rollRate),Math.abs(flight.pitchRate))/4));}
-    toggle(){this.enabled=!this.enabled;if(this.ctx)this.master.gain.setTargetAtTime(this.enabled?.42:0,this.ctx.currentTime,.08);return this.enabled;}
+    toggle(){this.enabled=!this.enabled;if(this.ctx)this.master.gain.setTargetAtTime(this.enabled?.55:0,this.ctx.currentTime,.08);return this.enabled;}
   }
   window.NotebookAudio=new FlightAudio();
 })();

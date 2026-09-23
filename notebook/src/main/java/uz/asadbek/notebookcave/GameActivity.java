@@ -20,6 +20,7 @@ public final class GameActivity extends Activity {
         game.setBackgroundColor(0xffeeedeb);
         game.getSettings().setJavaScriptEnabled(true);
         game.getSettings().setDomStorageEnabled(true);
+        game.getSettings().setMediaPlaybackRequiresUserGesture(false);
         game.getSettings().setAllowFileAccess(true);
         game.getSettings().setAllowContentAccess(false);
         game.getSettings().setAllowFileAccessFromFileURLs(false);

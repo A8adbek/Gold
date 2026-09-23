@@ -43,23 +43,33 @@
  const shades=['#c8c7c0','#d5d4cd','#e3e2da','#eeede6','#eeede6','#e3e2da','#d5d4cd','#c8c7c0','#dcdbd3'];
  function rim(z){return cross.map(([x,y])=>[x,y+floorAt(z),z]);}
  function environment(){
-   ctx.fillStyle='#efeee8';ctx.fillRect(0,0,w,h);
-   const base=Math.floor(camera.z/3)*3;
-   for(let n=29;n>=0;n--){
-     const a=rim(base+n*3),b=rim(base+(n+1)*3);
-     for(let j=0;j<9;j++){const k=(j+1)%9;polygon([a[j],a[k],b[k],b[j]],shades[j],'#b6b5ad',.6);}
-     // Ruled paper, fold seams, perforation holes; geometry is recycled each frame.
-     for(let j=0;j<8;j++)line(a[j],a[j+1],'#9b9a91',.65);
-     line(a[0],a[8],'#b0afa6',.7);
-     const z=base+n*3;
-     for(const x of [-2.4,0,2.4])line([x,floorAt(z)+.004,z],[x,floorAt(z+3)+.004,z+3],'#c5c4bb',.7);
-     polygon([[-4.79,floorAt(z)+2.25,z-.10],[-4.79,floorAt(z)+2.55,z-.10],[-4.79,floorAt(z)+2.55,z+.10],[-4.79,floorAt(z)+2.25,z+.10]],'#77766e',null);
+   // Red Dune Valley: open sky, warm sand and sparse desert vegetation.
+   const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#58b9db');sky.addColorStop(.48,'#b8e1df');sky.addColorStop(1,'#f7c47a');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+   const base=Math.floor(camera.z/4)*4;
+   const mesaZ=base+92;
+   polygon([[-18,2.6,mesaZ],[-13,4.2,mesaZ],[-9,3.5,mesaZ],[-6,4.8,mesaZ],[-1,3.1,mesaZ],[4,4.4,mesaZ],[9,3.2,mesaZ],[14,4.6,mesaZ],[18,2.6,mesaZ]],'#9b4335',null);
+   for(let n=28;n>=0;n--){
+     const z0=base+n*4,z1=z0+4,y0=floorAt(z0),y1=floorAt(z1);
+     polygon([[-18,y0,z0],[18,y0,z0],[18,y1,z1],[-18,y1,z1]],n%3?'#c9653f':'#d87947','#b14d37',.35);
+     polygon([[-18,y0+.02,z0],[-3.2,y0+.02,z0],[ -3.0,y1+.02,z1],[-18,y1+.02,z1]],n%2?'#a94c36':'#b65338',null);
+     polygon([[3.1,y0+.02,z0],[18,y0+.02,z0],[18,y1+.02,z1],[3.0,y1+.02,z1]],n%2?'#b65338':'#a94c36',null);
+     const sway=Math.sin(z0*.31)*.16;
+     for(const x of [-7.4+Math.sin(z0)*.8,6.9+Math.cos(z0*.7)*.9]){
+       const gy=floorAt(z0)+.03;line([x,gy,z0],[x+sway,gy+.35,z0],'#4e7c43',1.7);line([x,gy+.16,z0],[x-.14,gy+.27,z0],'#668c45',1);line([x,gy+.22,z0],[x+.15,gy+.32,z0],'#668c45',1);
+     }
+     if(n%5===1){
+       const x=-5.8+((n*1.73)%2.4),gy=floorAt(z0)+.02;
+       line([x,gy,z0],[x,gy+1.0,z0],'#477044',3);line([x-.28,gy+.48,z0],[x-.28,gy+.72,z0],'#477044',2);line([x+.28,gy+.34,z0],[x+.28,gy+.58,z0],'#477044',2);
+     }
+     if(n%4===0){
+       const x=2.6+Math.sin(n*2.1)*1.1,gy=floorAt(z0)+.03;
+       polygon([[x-.34,gy,z0],[x+.36,gy,z0],[x+.28,gy+.16,z0],[x-.2,gy+.22,z0]],'#7d3f31','#613228',.5);
+     }
    }
    if(flight.z<14){
-     // Paper launch platform; geometry only, no engine or booster.
-     polygon([[-.65,3.03,-1],[-.65,3.03,.25],[.65,3.03,.25],[.65,3.03,-1]],'#bcbab1','#5c5a52');
-     line([-.52,3.05,0],[-.52,3.6,0],'#47463f',3);line([.52,3.05,0],[.52,3.6,0],'#47463f',3);
-     if(state==='ready'){const z=-((pull&&pull.power)||0)*.25;line([-.52,3.55,0],[0,3.18,z],'#494840',2);line([0,3.18,z],[.52,3.55,0],'#494840',2);}
+     polygon([[-.72,3.03,-1],[-.72,3.03,.25],[.72,3.03,.25],[.72,3.03,-1]],'#d18a50','#7f422f');
+     line([-.52,3.05,0],[-.52,3.6,0],'#6a3b2d',3);line([.52,3.05,0],[.52,3.6,0],'#6a3b2d',3);
+     if(state==='ready'){const z=-((pull&&pull.power)||0)*.25;line([-.52,3.55,0],[0,3.18,z],'#6a3b2d',2);line([0,3.18,z],[.52,3.55,0],'#6a3b2d',2);}
    }
  }
  function box(o){
@@ -131,6 +141,7 @@
  window.pauseGame=()=>{if(state==='playing'||state==='ready'){resumeState=state;show('paused');}};
  $('pause').onclick=window.pauseGame;
  $('start').onclick=()=>{
+   audio.unlock();
    if(state==='paused'){state=resumeState;last=0;$('overlay').hidden=true;$('pause').disabled=false;$('launch-panel').hidden=state!=='ready';$('hint').hidden=state!=='playing';}else ready();
  };
  $('restart').onclick=ready;
