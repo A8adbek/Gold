@@ -6,6 +6,18 @@ on:
 permissions:
   contents: read
 jobs:
+  game-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test flight rules
+        run: node --test tests/flight.test.cjs
+      - name: Install browser test tools
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Mobile browser smoke test
+        run: node tests/browser.cjs
   build:
     runs-on: ubuntu-latest
     steps:
@@ -18,8 +30,12 @@ jobs:
         with:
           gradle-version: '8.10.2'
       - name: Build debug APK
-        run: gradle :app:assembleDebug
+        run: gradle :app:assembleDebug :notebook:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: GoldWidget-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NotebookCave-APK
+          path: notebook/build/outputs/apk/debug/notebook-debug.apk

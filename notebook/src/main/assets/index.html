@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
+<title>Notebook Cave</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="world" aria-label="Qog‘oz tunnelda samolyot uchish o‘yini"></canvas>
+<header>
+  <div class="brand">PAPER FLIGHT <span>01 / NOTEBOOK CAVE</span></div>
+  <button id="pause" aria-label="Pauza">Ⅱ</button>
+</header>
+<section class="hud" aria-label="O‘yin ko‘rsatkichlari">
+  <div><strong id="distance">0</strong><span>METR</span></div>
+  <div class="right"><strong id="rings">0</strong><span>HALQA</span></div>
+</section>
+<div id="toast" aria-live="polite"></div>
+<footer><span id="speed">18 m/s</span><span id="record">REKORD 0 m</span><button id="quality">TEJAMKOR: O‘CHIQ</button></footer>
+<section id="overlay" class="overlay">
+  <div class="card">
+    <div class="eyebrow">QOG‘OZDAN YASALGAN SARGUZASHT</div>
+    <h1 id="title">Notebook<br>Cave<span>01</span></h1>
+    <p id="description">Bir varaq. Cheksiz parvoz.<br>Daftar g‘orida o‘z yo‘lingizni toping.</p>
+    <div id="result" class="result">QOG‘OZ SAMOLYOT • OFFLINE</div>
+    <button id="start" class="primary">UCHISHNI BOSHLASH <span>↗</span></button>
+    <p class="help">Ekranda barmog‘ingizni surib boshqaring.<br>Qora to‘siqlardan qoching. Halqalarni yig‘ing.</p>
+    <p class="version">PROTOTIP 0.1 · ASADBEK</p>
+  </div>
+</section>
+<script src="engine.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
