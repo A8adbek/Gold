@@ -5,7 +5,11 @@ const GRID := 96
 const CELL := 7.5
 const SAND := Color("#d18f6d")
 const SAND_LIGHT := Color("#e3b08a")
-const DEM_SIZE := 3601
+# The source SRTM tile is 3601x3601 samples.  The game terrain is only
+# 97x97 vertices, so loading every source sample on the Android main thread
+# needlessly blocks the first frame.  Keep a 257x257 working grid instead.
+const DEM_SIZE := 257
+const DEM_SOURCE_SIZE := 3601
 
 var plane: Node3D
 var camera: Camera3D
@@ -137,12 +141,17 @@ func _load_elevation_tile() -> void:
 	dem_data.resize(sample_count)
 	dem_min = 32767
 	dem_max = -32768
-	for i in range(sample_count):
-		var value := file.get_16()
-		if value >= 32768: value -= 65536
-		dem_data[i] = value
-		dem_min = mini(dem_min, value)
-		dem_max = maxi(dem_max, value)
+	for z in range(DEM_SIZE):
+		var source_z := int(round(float(z) / float(DEM_SIZE - 1) * float(DEM_SOURCE_SIZE - 1)))
+		for x in range(DEM_SIZE):
+			var source_x := int(round(float(x) / float(DEM_SIZE - 1) * float(DEM_SOURCE_SIZE - 1)))
+			file.seek((source_z * DEM_SOURCE_SIZE + source_x) * 2)
+			var i := z * DEM_SIZE + x
+			var value := file.get_16()
+			if value >= 32768: value -= 65536
+			dem_data[i] = value
+			dem_min = mini(dem_min, value)
+			dem_max = maxi(dem_max, value)
 
 func _create_terrain() -> void:
 	var mesh := ArrayMesh.new()
