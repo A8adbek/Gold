@@ -23,11 +23,14 @@ jobs:
             gunzip -f "godot/assets/maps/${tile}.hgt.gz"
           done
           python3 - <<'PY'
-          import json, os, urllib.request
+          import json, os, shutil, urllib.request
           slugs = ["sand_01", "rock_08", "cliff_side"]
           maps = ["diff", "nor_gl", "rough", "disp", "ao"]
           for slug in slugs:
-              files = json.load(urllib.request.urlopen(f"https://api.polyhaven.com/files/{slug}"))
+              api_url = f"https://api.polyhaven.com/files/{slug}"
+              request = urllib.request.Request(api_url, headers={"User-Agent": "Mozilla/5.0 (compatible; RedDuneValley/1.0)"})
+              with urllib.request.urlopen(request) as response:
+                  files = json.load(response)
               for map_name in maps:
                   entry = files.get(map_name, {})
                   chosen = None
@@ -41,9 +44,12 @@ jobs:
                           break
                   if not chosen:
                       continue
-                  out = os.path.join("godot", "assets", "hires", f"{slug}_{map_name}.{chosen['url'].rsplit('.', 1)[-1].split('?')[0]}")
+                  suffix = chosen["url"].rsplit(".", 1)[-1].split("?")[0]
+                  out = os.path.join("godot", "assets", "hires", f"{slug}_{map_name}.{suffix}")
                   print(f"Downloading {chosen['url']} -> {out}")
-                  urllib.request.urlretrieve(chosen["url"], out)
+                  request = urllib.request.Request(chosen["url"], headers={"User-Agent": "Mozilla/5.0 (compatible; RedDuneValley/1.0)"})
+                  with urllib.request.urlopen(request) as response, open(out, "wb") as target:
+                      shutil.copyfileobj(response, target)
           PY
       - name: Create debug signing key
         run: keytool -genkeypair -v -keystore godot/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
@@ -69,4 +75,3 @@ jobs:
         with:
           name: RedDuneValley-3D-APK
           path: /home/runner/.local/share/godot/builds/Android/RedDuneValley-debug.apk
-
