@@ -33,9 +33,9 @@ jobs:
           relative_project_path: godot
           presets_to_export: Android
           export_debug: true
-          archive_output: true
+          archive_output: false
       - name: Upload native APK
         uses: actions/upload-artifact@v4
         with:
           name: RedDuneValley-3D-APK
-          path: /home/runner/.local/share/godot/archives/Android.zip
+          path: /home/runner/.local/share/godot/builds/Android/RedDuneValley-debug.apk
