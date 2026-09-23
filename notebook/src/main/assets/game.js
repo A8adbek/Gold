@@ -116,19 +116,15 @@
    polygon([nose,l,keel],'#a3a094','#45443b',.8);polygon([nose,keel,r],'#d3d0c3','#45443b',.8);
  }
  function follow(dt,snap=false){
-   const k=snap?1:1-Math.exp(-7*dt);
-   // World-locked dead-zone camera: the plane flies over fixed terrain instead of
-   // dragging the whole valley beneath it. Camera recenters only near the view edge.
-   camera.yaw=0;
-   const sideLimit=1.2,forwardLimit=2.2;
-   if(Math.abs(flight.x-camera.x)>sideLimit){
-     const target=flight.x-Math.sign(flight.x-camera.x)*sideLimit;
-     camera.x+=(target-camera.x)*k;
-   }
-   if(flight.z-camera.z>forwardLimit)camera.z+=(flight.z-1.1-camera.z)*k;
-   if(camera.z-flight.z>2)camera.z+=(flight.z+2-camera.z)*k;
-   camera.y+=(3.5-camera.y)*k;
-   camera.pitch*=1-k;
+   const k=snap?1:1-Math.exp(-12*dt);
+   // Version-1 chase camera: stay close behind the plane and turn smoothly with it.
+   const yawDelta=Math.atan2(Math.sin(flight.heading-camera.yaw),Math.cos(flight.heading-camera.yaw));
+   camera.yaw+=yawDelta*k;
+   camera.x+=(flight.x-Math.sin(camera.yaw)*1.1-camera.x)*k;
+   camera.y+=(flight.y+.52-camera.y)*k;
+   camera.z+=(flight.z-Math.cos(camera.yaw)*1.1-camera.z)*k;
+   const gamma=Math.atan2(flight.vy,Math.hypot(flight.vx,flight.vz));
+   camera.pitch+=(clamp(gamma*.18,-.16,.12)-camera.pitch)*k;
  }
  function hud(){
    $('distance').textContent=Math.floor(flight.distance);$('altitude').textContent=Math.max(0,flight.altitude).toFixed(1);
