@@ -121,6 +121,7 @@ func _create_terrain() -> void:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var colors := PackedColorArray()
+	var uvs := PackedVector2Array()
 	var indices := PackedInt32Array()
 	for z in range(GRID + 1):
 		for x in range(GRID + 1):
@@ -131,6 +132,7 @@ func _create_terrain() -> void:
 			var dz := (_height(px, pz + .2) - _height(px, pz - .2)) / .4
 			normals.append(Vector3(-dx, 1.0, -dz).normalized())
 			colors.append(SAND_LIGHT if (x + z) % 7 == 0 else SAND)
+			uvs.append(Vector2(float(x) / float(GRID) * 6.0, float(z) / float(GRID) * 6.0))
 	for z in range(GRID):
 		for x in range(GRID):
 			var i := z * (GRID + 1) + x
@@ -140,10 +142,13 @@ func _create_terrain() -> void:
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_INDEX] = indices
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	var material := StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
+	material.albedo_texture = load("res://assets/desert_sand.svg")
+	material.albedo_color = Color.WHITE
+	material.vertex_color_use_as_albedo = false
 	material.roughness = 0.94
 	var terrain := MeshInstance3D.new()
 	terrain.mesh = mesh
@@ -257,7 +262,7 @@ func _create_dune_ridges() -> void:
 		dune.scale = Vector3(1.8, 0.42, 2.8)
 		dune.position = Vector3(x, y, z)
 		dune.rotation.y = rng.randf_range(-0.8, 0.8)
-		dune.material_override = _material(Color("#b95f42") if i % 3 else Color("#d68452"))
+		dune.material_override = _material(Color("#ffffff"), "res://assets/desert_sand.svg")
 		add_child(dune)
 
 func _create_stratified_cliffs() -> void:
@@ -282,7 +287,7 @@ func _create_stratified_cliffs() -> void:
 			mesh.radial_segments = 8
 			slab.mesh = mesh
 			slab.position.y = layer * 3.0 + mesh.height * 0.5
-			slab.material_override = _material(Color("#774237") if layer == 0 else Color("#96503d") if layer == 1 else Color("#b96747"))
+			slab.material_override = _material(Color("#ffffff"), "res://assets/canyon_rock.svg")
 			root.add_child(slab)
 
 func _create_mesa(pos: Vector3, radius: float, height: float) -> void:
@@ -296,7 +301,7 @@ func _create_mesa(pos: Vector3, radius: float, height: float) -> void:
 	base_mesh.bottom_radius = radius
 	base_mesh.height = height
 	base.mesh = base_mesh
-	base.material_override = _material(Color("#8e4d3d"))
+	base.material_override = _material(Color("#ffffff"), "res://assets/canyon_rock.svg")
 	root.add_child(base)
 	var cap := MeshInstance3D.new()
 	var cap_mesh := CylinderMesh.new()
@@ -305,12 +310,13 @@ func _create_mesa(pos: Vector3, radius: float, height: float) -> void:
 	cap_mesh.height = .55
 	cap.position.y = height * .51
 	cap.mesh = cap_mesh
-	cap.material_override = _material(Color("#c8754b"))
+	cap.material_override = _material(Color("#e7b08a"), "res://assets/canyon_rock.svg")
 	root.add_child(cap)
 
-func _material(color: Color) -> StandardMaterial3D:
+func _material(color: Color, texture_path: String = "") -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
+	if texture_path != "": mat.albedo_texture = load(texture_path)
 	mat.roughness = .92
 	return mat
 
