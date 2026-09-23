@@ -146,7 +146,7 @@
  window.addEventListener('keydown',e=>{
    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
    if(e.key==='Escape'||(e.key===' '&&state==='playing')){window.pauseGame();return;}
-   if(state==='ready'&&(e.key===' '||e.key==='Enter')){startFlight(.65);return;}keys.add(e.key.toLowerCase());
+   if(state==='ready'&&(e.key===' '||e.key==='Enter')){e.preventDefault();startFlight(.65);return;}keys.add(e.key.toLowerCase());
  });
  window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());if(!drag)flight.release();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)window.pauseGame();last=0;});
