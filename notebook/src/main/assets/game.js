@@ -55,9 +55,8 @@
    polygon([[-120,2.6,mesaZ],[-86,4.2,mesaZ],[-55,3.5,mesaZ],[-30,4.8,mesaZ],[-5,3.1,mesaZ],[28,4.4,mesaZ],[57,3.2,mesaZ],[88,4.6,mesaZ],[120,2.6,mesaZ]],'#9b4335',null);
    for(let n=28;n>=0;n--){
      const z0=base+n*4,z1=z0+4,y0=floorAt(z0),y1=floorAt(z1);
-     polygon([[-120,y0,z0],[120,y0,z0],[120,y1,z1],[-120,y1,z1]],n%3?'#c9653f':'#d87947','#b14d37',.35);
-     polygon([[-120,y0+.02,z0],[-3.2,y0+.02,z0],[ -3.0,y1+.02,z1],[-120,y1+.02,z1]],n%2?'#a94c36':'#b65338',null);
-     polygon([[3.1,y0+.02,z0],[120,y0+.02,z0],[120,y1+.02,z1],[3.0,y1+.02,z1]],n%2?'#b65338':'#a94c36',null);
+     // One continuous sand surface: no runway-like strips or lane bands.
+     polygon([[-120,y0,z0],[120,y0,z0],[120,y1,z1],[-120,y1,z1]],'#d27647',null);
      const sway=Math.sin(z0*.31)*.16;
      for(const x of [-7.4+Math.sin(z0)*.8,6.9+Math.cos(z0*.7)*.9]){
        const gy=floorAt(z0)+.03;line([x,gy,z0],[x+sway,gy+.35,z0],'#4e7c43',1.7);line([x,gy+.16,z0],[x-.14,gy+.27,z0],'#668c45',1);line([x,gy+.22,z0],[x+.15,gy+.32,z0],'#668c45',1);
