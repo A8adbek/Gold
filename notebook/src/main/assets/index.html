@@ -6,7 +6,7 @@
 <title>Notebook Cave</title><link rel="stylesheet" href="style.css">
 </head><body>
 <canvas id="world" aria-label="Qog‘oz samolyot parvozi"></canvas>
-<header><div class="brand">PAPER FLIGHT<span>01 / NOTEBOOK CAVE</span></div><button id="pause" aria-label="Pauza">Ⅱ</button></header>
+<header><div class="brand">PAPER FLIGHT<span>01 / RED DUNE VALLEY</span></div><button id="pause" aria-label="Pauza">Ⅱ</button></header>
 <section class="hud"><div><strong id="distance">0</strong><span>METR</span></div><div class="right"><strong id="altitude">3.2</strong><span>BALANDLIK · M</span></div></section>
 <div id="warning" role="status"></div><div id="toast" aria-live="polite"></div>
 <div id="launch-panel" hidden><span class="eyebrow">01 — UCHIRISH</span><h2>Torting. Nishonlang. Uchiring.</h2><p>Doirani pastga tortib, qo‘yib yuboring.<br>Yon tomonga surish uchirish yo‘nalishini o‘zgartiradi.</p><div id="pull-zone"><div id="pull-knob">↓</div></div><div class="launch-stats"><span id="power">KUCH 0%</span><span id="angle">BURCHAK 6°</span></div><input id="launch-angle" aria-label="Uchirish burchagi" type="range" min="-5" max="20" value="6"><span class="small">Uchirish burchagi</span></div>
@@ -14,7 +14,7 @@
 <div id="hint" hidden>EKRANDA SURING · QANOTNI OG‘DIRING</div>
 <footer><span id="speed">0.0 m/s</span><span id="time">0.0 s</span><span id="rings">○ 0</span><span id="record">REKORD 0 m</span></footer>
 <section id="overlay" class="overlay"><div class="card">
-<div class="eyebrow">MOTORSIZ PARVOZ · OFFLINE</div>
+<div class="eyebrow">MOTORSIZ PARVOZ · RED DUNE VALLEY</div>
 <h1 id="title">Notebook<br>Cave<span>02</span></h1>
 <p id="description">Tezlikni his qiling.<br>Balandlikni masofaga aylantiring.</p>
 <div id="result" class="result">QOG‘OZ SAMOLYOT · YANGI PARVOZ FIZIKASI</div>
@@ -23,8 +23,8 @@
 <details id="settings"><summary>BOSHQARUV VA GRAFIKA</summary>
 <label>Sezgirlik <output id="sensitivity-value">1.0×</output><input id="sensitivity" type="range" min="50" max="150" value="100"></label>
 <label class="check"><input id="invert" type="checkbox"> Pilot boshqaruvi: pastga tortish — burun yuqoriga</label>
-<button id="quality">TEJAMKOR REJIM: O‘CHIQ</button></details>
+<button id="quality">TEJAMKOR REJIM: O‘CHIQ</button><button id="audio-toggle" type="button">OVOZ: YOQILGAN</button></details>
 <p id="help" class="help">Chap-o‘ng: qanotni og‘dirish.<br>Yuqori-past: burun burchagi.<br>Barmoqni qo‘yib yuboring — erkin sirpanib uchadi.</p>
-<p class="version">PROTOTIP 0.2 · ASADBEK</p>
+<p class="version">PROTOTIP 0.3 · ASADBEK</p>
 </div></section>
-<script src="engine.js"></script><script src="game.js"></script></body></html>
+<script src="engine.js"></script><script src="audio.js"></script><script src="game.js"></script></body></html>
