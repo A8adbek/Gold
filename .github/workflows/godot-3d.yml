@@ -1,0 +1,30 @@
+name: Build Red Dune Valley 3D
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'godot/**'
+      - '.github/workflows/godot-3d.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export native Godot Android build
+        uses: firebelley/godot-export@v8.0.0
+        with:
+          godot_executable_download_url: https://downloads.godotengine.org/?version=4.4.1&flavor=stable&platform=linux.x86_64.zip
+          godot_export_templates_download_url: https://downloads.godotengine.org/?version=4.4.1&flavor=stable&platform=export_templates.tpz
+          relative_project_path: godot
+          presets_to_export: Android
+          archive_output: true
+      - name: Upload native APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RedDuneValley-3D-APK
+          path: godot/.builds/**
