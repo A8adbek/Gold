@@ -42,6 +42,7 @@ func _ready() -> void:
 	_create_canyon_details()
 	_create_dune_ridges()
 	_create_stratified_cliffs()
+	_create_landmark_details()
 	_create_plane()
 	_create_camera()
 	_create_hud()
@@ -289,6 +290,56 @@ func _create_stratified_cliffs() -> void:
 			slab.position.y = layer * 3.0 + mesh.height * 0.5
 			slab.material_override = _material(Color("#ffffff"), "res://assets/canyon_rock.svg")
 			root.add_child(slab)
+
+func _create_landmark_details() -> void:
+	# Distinctive static rock landmarks break up the repeated procedural silhouettes.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 78104
+	for i in range(14):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := side * rng.randf_range(70.0, 300.0)
+		var z := rng.randf_range(-300.0, 300.0)
+		var y := _height(x, z)
+		var root := Node3D.new()
+		root.position = Vector3(x, y, z)
+		root.rotation.y = rng.randf_range(-0.7, 0.7)
+		add_child(root)
+		for tower in range(3):
+			var spire := MeshInstance3D.new()
+			var mesh := CylinderMesh.new()
+			mesh.top_radius = rng.randf_range(0.2, 1.2)
+			mesh.bottom_radius = rng.randf_range(2.0, 4.5)
+			mesh.height = rng.randf_range(6.0, 15.0)
+			mesh.radial_segments = 7
+			spire.mesh = mesh
+			spire.position = Vector3(rng.randf_range(-5.0, 5.0), mesh.height * 0.5, rng.randf_range(-4.0, 4.0))
+			spire.rotation.z = rng.randf_range(-0.16, 0.16)
+			spire.material_override = _material(Color("#ffffff"), "res://assets/canyon_rock.svg")
+			root.add_child(spire)
+	for i in range(28):
+		var x := rng.randf_range(-300.0, 300.0)
+		var z := rng.randf_range(-300.0, 300.0)
+		if abs(x) < 14.0 and abs(z) < 26.0: continue
+		var y := _height(x, z)
+		_create_rock_cluster(Vector3(x, y, z), rng.randf_range(0.8, 1.8), rng)
+
+func _create_rock_cluster(pos: Vector3, scale: float, rng: RandomNumberGenerator) -> void:
+	var root := Node3D.new()
+	root.position = pos
+	root.rotation.y = rng.randf_range(-1.0, 1.0)
+	add_child(root)
+	for i in range(3):
+		var stone := MeshInstance3D.new()
+		var mesh := SphereMesh.new()
+		mesh.radial_segments = 8
+		mesh.rings = 4
+		mesh.radius = rng.randf_range(0.35, 0.75) * scale
+		mesh.height = rng.randf_range(0.65, 1.3) * scale
+		stone.mesh = mesh
+		stone.position = Vector3(rng.randf_range(-1.0, 1.0) * scale, mesh.height * 0.35, rng.randf_range(-0.8, 0.8) * scale)
+		stone.rotation = Vector3(rng.randf_range(-0.3, 0.3), rng.randf_range(-1.0, 1.0), rng.randf_range(-0.2, 0.2))
+		stone.material_override = _material(Color("#ffffff"), "res://assets/canyon_rock.svg")
+		root.add_child(stone)
 
 func _create_mesa(pos: Vector3, radius: float, height: float) -> void:
 	var root := Node3D.new()
