@@ -14,14 +14,19 @@ var elapsed := 0.0
 var touch_origin := Vector2.ZERO
 var touch_axis := Vector2.ZERO
 var touch_active := false
+var speed_label: Label
+var altitude_label: Label
+var distance_label: Label
 
 func _ready() -> void:
 	_render_environment()
 	_create_audio()
 	_create_terrain()
 	_create_desert_details()
+	_create_canyon_details()
 	_create_plane()
 	_create_camera()
+	_create_hud()
 	set_process_unhandled_input(true)
 
 func _create_audio() -> void:
@@ -149,6 +154,40 @@ func _create_desert_details() -> void:
 		elif i % 3 == 0: _create_rock(Vector3(x, y, z), rng.randf_range(.35, 1.15))
 		else: _create_grass(Vector3(x, y, z), rng.randf_range(.7, 1.4))
 
+func _create_canyon_details() -> void:
+	# Large layered mesas make the valley feel open and deep without a visible map edge.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 90817
+	for i in range(18):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := side * rng.randf_range(42.0, 150.0)
+		var z := rng.randf_range(-150.0, 150.0)
+		var y := _height(x, z)
+		_create_mesa(Vector3(x, y, z), rng.randf_range(3.0, 8.5), rng.randf_range(5.0, 13.0))
+
+func _create_mesa(pos: Vector3, radius: float, height: float) -> void:
+	var root := Node3D.new()
+	root.position = pos + Vector3(0, height * .5, 0)
+	root.rotation.y = pos.x * .021
+	add_child(root)
+	var base := MeshInstance3D.new()
+	var base_mesh := CylinderMesh.new()
+	base_mesh.top_radius = radius * .68
+	base_mesh.bottom_radius = radius
+	base_mesh.height = height
+	base.mesh = base_mesh
+	base.material_override = _material(Color("#8e4d3d"))
+	root.add_child(base)
+	var cap := MeshInstance3D.new()
+	var cap_mesh := CylinderMesh.new()
+	cap_mesh.top_radius = radius * .64
+	cap_mesh.bottom_radius = radius * .70
+	cap_mesh.height = .55
+	cap.position.y = height * .51
+	cap.mesh = cap_mesh
+	cap.material_override = _material(Color("#c8754b"))
+	root.add_child(cap)
+
 func _material(color: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
@@ -187,6 +226,45 @@ func _create_camera() -> void:
 	add_child(camera)
 	camera.current = true
 
+func _create_hud() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 20
+	add_child(layer)
+	var title := Label.new()
+	title.text = "RED DUNE VALLEY"
+	title.position = Vector2(22, 22)
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_color", Color("#fff4df"))
+	layer.add_child(title)
+	var subtitle := Label.new()
+	subtitle.text = "PAPER FLIGHT  /  OPEN DESERT"
+	subtitle.position = Vector2(23, 44)
+	subtitle.add_theme_font_size_override("font_size", 9)
+	subtitle.add_theme_color_override("font_color", Color("#f4d2ae"))
+	layer.add_child(subtitle)
+	speed_label = _hud_label(layer, Vector2(22, 84), "SPEED  0.0 m/s")
+	altitude_label = _hud_label(layer, Vector2(22, 108), "ALTITUDE  0.0 m")
+	distance_label = _hud_label(layer, Vector2(22, 132), "DISTANCE  0 m")
+	var hint := Label.new()
+	hint.text = "DRAG TO STEER  •  RELEASE TO GLIDE"
+	hint.position = Vector2(22, 0)
+	hint.anchor_top = 1.0
+	hint.anchor_bottom = 1.0
+	hint.offset_top = -34
+	hint.offset_bottom = -16
+	hint.add_theme_font_size_override("font_size", 9)
+	hint.add_theme_color_override("font_color", Color("#fff4df"))
+	layer.add_child(hint)
+
+func _hud_label(layer: CanvasLayer, pos: Vector2, text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.position = pos
+	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_color_override("font_color", Color("#fff4df"))
+	layer.add_child(label)
+	return label
+
 func _process(delta: float) -> void:
 	if plane == null or camera == null: return
 	elapsed += delta
@@ -208,3 +286,7 @@ func _process(delta: float) -> void:
 	var target := plane.position + Vector3(0, 1.15, 2.25)
 	camera.position = camera.position.lerp(target, 1.0 - exp(-delta * 8.0))
 	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
+	if speed_label:
+		speed_label.text = "SPEED  %.1f m/s" % velocity.length()
+		altitude_label.text = "ALTITUDE  %.1f m" % max(0.0, plane.position.y - _height(plane.position.x, plane.position.z))
+		distance_label.text = "DISTANCE  %.0f m" % max(0.0, -plane.position.z)
