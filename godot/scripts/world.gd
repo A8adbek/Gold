@@ -83,7 +83,8 @@ func _create_plane() -> void:
 
 func _create_camera() -> void:
 	camera = Camera3D.new()
-	camera.position = Vector3(0, 2.2, 5.5)
+	# Close version-1 chase view: the paper plane stays large and readable.
+	camera.position = Vector3(0, 1.15, 2.25)
 	camera.look_at_from_position(camera.position, plane.position)
 	add_child(camera)
 	camera.current = true
@@ -94,6 +95,6 @@ func _process(delta: float) -> void:
 	plane.rotation.z = lerp(plane.rotation.z, -input.x * 0.32, delta * 5.0)
 	plane.rotation.x = lerp(plane.rotation.x, input.y * 0.18, delta * 5.0)
 	plane.position.z -= delta * 8.0
-	var target := plane.position + Vector3(0, 1.6, 5.5)
+	var target := plane.position + Vector3(0, 1.15, 2.25)
 	camera.position = camera.position.lerp(target, 1.0 - exp(-delta * 8.0))
-	camera.look_at(plane.position + Vector3(0, 0, -6), Vector3.UP)
+	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
