@@ -17,28 +17,28 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download CC0 terrain textures and public elevation tiles
         run: |
+          set -euo pipefail
           mkdir -p godot/assets/hires godot/assets/maps
           for tile in N40E068 N40E069 N41E068 N41E069; do
-            curl -L --fail --retry 3 "https://s3.amazonaws.com/elevation-tiles-prod/skadi/${tile:0:3}/${tile}.hgt.gz" -o "godot/assets/maps/${tile}.hgt.gz"
+            curl -L --fail --retry 3 -A "Mozilla/5.0" "https://s3.amazonaws.com/elevation-tiles-prod/skadi/${tile:0:3}/${tile}.hgt.gz" -o "godot/assets/maps/${tile}.hgt.gz"
             gunzip -f "godot/assets/maps/${tile}.hgt.gz"
           done
           python3 - <<'PY'
           import json, os, shutil, urllib.request
           slugs = ["sand_01", "rock_08", "cliff_side"]
           maps = ["diff", "nor_gl", "rough", "disp", "ao"]
+          headers = {"User-Agent": "Mozilla/5.0 (compatible; RedDuneValley/1.0)"}
           for slug in slugs:
-              api_url = f"https://api.polyhaven.com/files/{slug}"
-              request = urllib.request.Request(api_url, headers={"User-Agent": "Mozilla/5.0 (compatible; RedDuneValley/1.0)"})
+              request = urllib.request.Request(f"https://api.polyhaven.com/files/{slug}", headers=headers)
               with urllib.request.urlopen(request) as response:
                   files = json.load(response)
               for map_name in maps:
                   entry = files.get(map_name, {})
                   chosen = None
                   for resolution in ("8k", "16k", "4k", "2k"):
-                      formats = entry.get(resolution, {})
                       for fmt in ("jpg", "png", "exr"):
-                          if fmt in formats:
-                              chosen = formats[fmt]
+                          if fmt in entry.get(resolution, {}):
+                              chosen = entry[resolution][fmt]
                               break
                       if chosen:
                           break
@@ -47,7 +47,7 @@ jobs:
                   suffix = chosen["url"].rsplit(".", 1)[-1].split("?")[0]
                   out = os.path.join("godot", "assets", "hires", f"{slug}_{map_name}.{suffix}")
                   print(f"Downloading {chosen['url']} -> {out}")
-                  request = urllib.request.Request(chosen["url"], headers={"User-Agent": "Mozilla/5.0 (compatible; RedDuneValley/1.0)"})
+                  request = urllib.request.Request(chosen["url"], headers=headers)
                   with urllib.request.urlopen(request) as response, open(out, "wb") as target:
                       shutil.copyfileobj(response, target)
           PY
