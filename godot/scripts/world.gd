@@ -11,6 +11,9 @@ var camera: Camera3D
 var velocity := Vector3(0, 0, -8.0)
 var airspeed := 8.0
 var elapsed := 0.0
+var touch_origin := Vector2.ZERO
+var touch_axis := Vector2.ZERO
+var touch_active := false
 
 func _ready() -> void:
 	_render_environment()
@@ -18,6 +21,19 @@ func _ready() -> void:
 	_create_desert_details()
 	_create_plane()
 	_create_camera()
+	set_process_unhandled_input(true)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			touch_origin = event.position
+			touch_axis = Vector2.ZERO
+			touch_active = true
+		else:
+			touch_axis = Vector2.ZERO
+			touch_active = false
+	elif event is InputEventScreenDrag and touch_active:
+		touch_axis = (event.position - touch_origin).limit_length(90.0) / 90.0
 
 func _render_environment() -> void:
 	var world := WorldEnvironment.new()
@@ -158,6 +174,7 @@ func _process(delta: float) -> void:
 	if plane == null or camera == null: return
 	elapsed += delta
 	var input := Vector2(Input.get_axis("roll_left", "roll_right"), Input.get_axis("pitch_down", "pitch_up"))
+	if touch_active: input = Vector2(touch_axis.x, -touch_axis.y)
 	var target_roll := -input.x * 0.42
 	var target_pitch := input.y * 0.22
 	plane.rotation.z = lerp(plane.rotation.z, target_roll, delta * 5.0)
