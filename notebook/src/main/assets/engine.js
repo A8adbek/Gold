@@ -27,7 +27,7 @@
    }return true;
  }
  class Flight {
-   constructor(options={}){this.random=options.random||Math.random;this.environment=options.environment!==false;this.obstacles=options.obstacles!==false;this.reset();}
+   constructor(options={}){this.random=options.random||Math.random;this.environment=options.environment!==false;this.obstacles=options.obstacles!==false;this.openWorld=options.openWorld===true;this.reset();}
    reset(){
      this.x=0;this.y=3.2;this.z=0;this.vx=0;this.vy=0;this.vz=0;
      this.pitch=.14;this.pitchRate=0;this.roll=0;this.rollRate=0;this.heading=0;
@@ -94,7 +94,7 @@
          const soft=Math.abs(sink)<.85&&Math.hypot(this.vx,this.vz)<6.5&&Math.abs(this.roll)<.35&&!this.stalled;
          this.y=floorAt(this.z)+clearance;this.finish(soft?'landed':'crashed',soft?'soft':'ground');return;
        }
-       if(Math.abs(this.x)+P.span*.5>=P.halfWidth||this.y+clearance>=roofAt(this.x,this.z)){
+       if(!this.openWorld&&(Math.abs(this.x)+P.span*.5>=P.halfWidth||this.y+clearance>=roofAt(this.x,this.z))){
          this.finish('crashed','wall');return;
        }
      }

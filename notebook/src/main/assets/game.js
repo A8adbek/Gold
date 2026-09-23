@@ -3,7 +3,7 @@
  const {Flight,P,floorAt,roofAt,clamp}=NotebookPhysics;
  const audio=window.NotebookAudio;
  const $=id=>document.getElementById(id),canvas=$('world'),ctx=canvas.getContext('2d',{alpha:false});
- const flight=new Flight();
+ const flight=new Flight({obstacles:false,openWorld:true});
  let w=0,h=0,focal=0,state='menu',last=0,renderAt=0,drag=null,pull=null,resumeState='playing',toastUntil=0;
  let best=0,economy=false,sensitivity=1,invert=false,launchAngle=6;
  const keys=new Set();
@@ -120,7 +120,7 @@
  }
  function hud(){
    $('distance').textContent=Math.floor(flight.distance);$('altitude').textContent=Math.max(0,flight.altitude).toFixed(1);
-   $('speed').textContent=flight.speed.toFixed(1)+' m/s';$('time').textContent=flight.time.toFixed(1)+' s';$('rings').textContent='○ '+flight.rings;$('record').textContent='REKORD '+best+' m';
+   $('speed').textContent=flight.speed.toFixed(1)+' m/s';$('time').textContent=flight.time.toFixed(1)+' s';$('rings').textContent='OCHIQ MAYDON';$('record').textContent='REKORD '+best+' m';
    $('warning').textContent=state==='playing'?(flight.stalled?'STALL — BURUNNI PASTLATING':Math.abs(flight.alpha)>P.stallAngle*.8?'BURCHAK KATTA — EHTIYOT BO‘LING':flight.altitude<.6?'YER YAQIN — QANOTNI TEKISLANG':''):'';
  }
  function release(){drag=null;pull=null;flight.release();keys.clear();$('stick').hidden=true;$('pull-knob').style.transform='none';$('power').textContent='KUCH 0%';}
@@ -135,7 +135,7 @@
    const paused=mode==='paused',landed=flight.status==='landed';
    $('title').innerHTML=paused?'Bir oz<br>tanaffus<span>Ⅱ</span>':landed?'Yumshoq<br>qo‘nish<span>✓</span>':'Yana bir<br>parvoz?<span>↗</span>';
    $('description').textContent=paused?'Parvozingiz shu yerda kutib turadi.':landed?'Tezlik, muvozanat va yaxshi qo‘nish.':flight.reason==='wall'?'Tunnel devoriga tegdingiz. Burilishni ertaroq boshlang.':flight.reason==='obstacle'?'To‘siqqa tegdingiz. Qanotni og‘dirib yo‘nalishni o‘zgartiring.':'Qattiq qo‘nish. Pasayish tezligi va qanot og‘ishini kamaytiring.';
-   $('result').textContent=Math.floor(flight.distance)+' METR · '+flight.time.toFixed(1)+' SONIYA · '+flight.rings+' HALQA · MAX '+flight.maxSpeed.toFixed(1)+' m/s';
+   $('result').textContent=Math.floor(flight.distance)+' METR · '+flight.time.toFixed(1)+' SONIYA · OCHIQ MAYDON · MAX '+flight.maxSpeed.toFixed(1)+' m/s';
    $('start').innerHTML=paused?'DAVOM ETISH <span>↗</span>':'YANA UCHIRISH <span>↗</span>';$('restart').hidden=!paused;
  }
  window.pauseGame=()=>{if(state==='playing'||state==='ready'){resumeState=state;show('paused');}};
