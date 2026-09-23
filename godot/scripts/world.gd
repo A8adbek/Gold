@@ -266,8 +266,6 @@ func _create_hud() -> void:
 	hud_layer = layer
 	add_child(layer)
 	speed_label = _hud_label(layer, Vector2(22, 28), "SPEED  0.0 m/s")
-	altitude_label = _hud_label(layer, Vector2(22, 52), "ALTITUDE  0.0 m")
-	distance_label = _hud_label(layer, Vector2(22, 76), "DISTANCE  0 m")
 	pause_button = _ui_button("PAUSE", Vector2(555, 24), Vector2(140, 52))
 	layer.add_child(pause_button)
 	pause_button.pressed.connect(_toggle_pause)
@@ -418,8 +416,6 @@ func _process(delta: float) -> void:
 	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
 	if speed_label:
 		speed_label.text = "SPEED  %.1f m/s" % velocity.length()
-		altitude_label.text = "ALTITUDE  %.1f m" % max(0.0, plane.position.y - _height(plane.position.x, plane.position.z))
-		distance_label.text = "DISTANCE  %.0f m" % max(0.0, -plane.position.z)
 
 func _update_flight_audio(delta: float, input: Vector2) -> void:
 	if wind_playback == null or turn_playback == null: return
