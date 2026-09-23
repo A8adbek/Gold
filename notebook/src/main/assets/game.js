@@ -116,12 +116,12 @@
    // World-locked dead-zone camera: the plane flies over fixed terrain instead of
    // dragging the whole valley beneath it. Camera recenters only near the view edge.
    camera.yaw=0;
-   const sideLimit=3.2,forwardLimit=10.5;
+   const sideLimit=1.2,forwardLimit=2.2;
    if(Math.abs(flight.x-camera.x)>sideLimit){
      const target=flight.x-Math.sign(flight.x-camera.x)*sideLimit;
      camera.x+=(target-camera.x)*k;
    }
-   if(flight.z-camera.z>forwardLimit)camera.z+=(flight.z-forwardLimit-camera.z)*k;
+   if(flight.z-camera.z>forwardLimit)camera.z+=(flight.z-1.1-camera.z)*k;
    if(camera.z-flight.z>2)camera.z+=(flight.z+2-camera.z)*k;
    camera.y+=(3.5-camera.y)*k;
    camera.pitch*=1-k;
