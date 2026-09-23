@@ -197,7 +197,7 @@ func _process(delta: float) -> void:
 	plane.rotation.z = lerp(plane.rotation.z, target_roll, delta * 5.0)
 	plane.rotation.x = lerp(plane.rotation.x, target_pitch, delta * 4.0)
 	var forward := Vector3(0, 0, -1).rotated(Vector3.RIGHT, plane.rotation.x).rotated(Vector3.UP, plane.rotation.y)
-	var lift := clamp(airspeed * airspeed * 0.035, 1.5, 3.4)
+	var lift: float = clampf(airspeed * airspeed * 0.035, 1.5, 3.4)
 	var gravity := Vector3.DOWN * 2.8
 	var target_velocity := forward * airspeed + Vector3(0, lift, 0) + gravity
 	velocity = velocity.lerp(target_velocity, 1.0 - exp(-delta * 2.6))
