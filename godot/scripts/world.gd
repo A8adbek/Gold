@@ -8,6 +8,9 @@ const SAND_LIGHT := Color("#e19a61")
 
 var plane: Node3D
 var camera: Camera3D
+var velocity := Vector3(0, 0, -8.0)
+var airspeed := 8.0
+var elapsed := 0.0
 
 func _ready() -> void:
 	_render_environment()
@@ -153,12 +156,21 @@ func _create_camera() -> void:
 
 func _process(delta: float) -> void:
 	if plane == null or camera == null: return
+	elapsed += delta
 	var input := Vector2(Input.get_axis("roll_left", "roll_right"), Input.get_axis("pitch_down", "pitch_up"))
-	plane.rotation.z = lerp(plane.rotation.z, -input.x * 0.32, delta * 5.0)
-	plane.rotation.x = lerp(plane.rotation.x, input.y * 0.18, delta * 5.0)
-	plane.position.x += input.x * delta * 4.2
-	plane.position.y += input.y * delta * 1.8
-	plane.position.z -= delta * 8.0
+	var target_roll := -input.x * 0.42
+	var target_pitch := input.y * 0.22
+	plane.rotation.z = lerp(plane.rotation.z, target_roll, delta * 5.0)
+	plane.rotation.x = lerp(plane.rotation.x, target_pitch, delta * 4.0)
+	var forward := Vector3(0, 0, -1).rotated(Vector3.RIGHT, plane.rotation.x).rotated(Vector3.UP, plane.rotation.y)
+	var lift := clamp(airspeed * airspeed * 0.035, 1.5, 3.4)
+	var gravity := Vector3.DOWN * 2.8
+	var target_velocity := forward * airspeed + Vector3(0, lift, 0) + gravity
+	velocity = velocity.lerp(target_velocity, 1.0 - exp(-delta * 2.6))
+	plane.position += velocity * delta
+	# Small natural paper-airframe flex, strongest during fast control changes.
+	var flex := sin(elapsed * 18.0) * (abs(input.x) + abs(input.y)) * 0.018
+	if plane.get_child_count() > 0: plane.get_child(0).rotation.y = flex
 	var target := plane.position + Vector3(0, 1.15, 2.25)
 	camera.position = camera.position.lerp(target, 1.0 - exp(-delta * 8.0))
 	camera.look_at(plane.position + Vector3(0, 0, -5), Vector3.UP)
