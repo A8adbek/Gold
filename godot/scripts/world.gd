@@ -53,6 +53,11 @@ func _render_environment() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("#f5d6ad")
 	env.ambient_light_energy = 0.72
+	env.fog_enabled = true
+	env.fog_light_color = Color("#d9b99b")
+	env.fog_light_energy = 0.55
+	env.fog_density = 0.004
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	world.environment = env
 	add_child(world)
 	var sun := DirectionalLight3D.new()
@@ -76,7 +81,9 @@ func _create_terrain() -> void:
 			var px := (x - GRID * 0.5) * CELL
 			var pz := (z - GRID * 0.5) * CELL
 			vertices.append(Vector3(px, _height(px, pz), pz))
-			normals.append(Vector3.UP)
+			var dx := (_height(px + .2, pz) - _height(px - .2, pz)) / .4
+			var dz := (_height(px, pz + .2) - _height(px, pz - .2)) / .4
+			normals.append(Vector3(-dx, 1.0, -dz).normalized())
 			colors.append(SAND_LIGHT if (x + z) % 7 == 0 else SAND)
 	for z in range(GRID):
 		for x in range(GRID):
