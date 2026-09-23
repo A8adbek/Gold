@@ -3,6 +3,7 @@
  const {Flight,P,floorAt,roofAt,clamp}=NotebookPhysics;
  const audio=window.NotebookAudio;
  const $=id=>document.getElementById(id),canvas=$('world'),ctx=canvas.getContext('2d',{alpha:false});
+ const valleyBackdrop=new Image();valleyBackdrop.src='red-dune-valley.jpg';
  const flight=new Flight({obstacles:false,openWorld:true});
  let w=0,h=0,focal=0,state='menu',last=0,renderAt=0,drag=null,pull=null,resumeState='playing',toastUntil=0;
  let best=0,economy=false,sensitivity=1,invert=false,launchAngle=6;
@@ -45,6 +46,10 @@
  function environment(){
    // Red Dune Valley: open sky, warm sand and sparse desert vegetation.
    const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#58b9db');sky.addColorStop(.48,'#b8e1df');sky.addColorStop(1,'#f7c47a');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+   if(valleyBackdrop.complete&&valleyBackdrop.naturalWidth){
+     const cropH=Math.floor(valleyBackdrop.naturalHeight*.66);
+     ctx.globalAlpha=.58;ctx.drawImage(valleyBackdrop,0,0,valleyBackdrop.naturalWidth,cropH,0,0,w,h*.72);ctx.globalAlpha=1;
+   }
    const base=Math.floor(camera.z/4)*4;
    const mesaZ=base+92;
    polygon([[-120,2.6,mesaZ],[-86,4.2,mesaZ],[-55,3.5,mesaZ],[-30,4.8,mesaZ],[-5,3.1,mesaZ],[28,4.4,mesaZ],[57,3.2,mesaZ],[88,4.6,mesaZ],[120,2.6,mesaZ]],'#9b4335',null);
