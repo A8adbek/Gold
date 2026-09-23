@@ -47,12 +47,12 @@
    const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#58b9db');sky.addColorStop(.48,'#b8e1df');sky.addColorStop(1,'#f7c47a');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
    const base=Math.floor(camera.z/4)*4;
    const mesaZ=base+92;
-   polygon([[-18,2.6,mesaZ],[-13,4.2,mesaZ],[-9,3.5,mesaZ],[-6,4.8,mesaZ],[-1,3.1,mesaZ],[4,4.4,mesaZ],[9,3.2,mesaZ],[14,4.6,mesaZ],[18,2.6,mesaZ]],'#9b4335',null);
+   polygon([[-120,2.6,mesaZ],[-86,4.2,mesaZ],[-55,3.5,mesaZ],[-30,4.8,mesaZ],[-5,3.1,mesaZ],[28,4.4,mesaZ],[57,3.2,mesaZ],[88,4.6,mesaZ],[120,2.6,mesaZ]],'#9b4335',null);
    for(let n=28;n>=0;n--){
      const z0=base+n*4,z1=z0+4,y0=floorAt(z0),y1=floorAt(z1);
-     polygon([[-18,y0,z0],[18,y0,z0],[18,y1,z1],[-18,y1,z1]],n%3?'#c9653f':'#d87947','#b14d37',.35);
-     polygon([[-18,y0+.02,z0],[-3.2,y0+.02,z0],[ -3.0,y1+.02,z1],[-18,y1+.02,z1]],n%2?'#a94c36':'#b65338',null);
-     polygon([[3.1,y0+.02,z0],[18,y0+.02,z0],[18,y1+.02,z1],[3.0,y1+.02,z1]],n%2?'#b65338':'#a94c36',null);
+     polygon([[-120,y0,z0],[120,y0,z0],[120,y1,z1],[-120,y1,z1]],n%3?'#c9653f':'#d87947','#b14d37',.35);
+     polygon([[-120,y0+.02,z0],[-3.2,y0+.02,z0],[ -3.0,y1+.02,z1],[-120,y1+.02,z1]],n%2?'#a94c36':'#b65338',null);
+     polygon([[3.1,y0+.02,z0],[120,y0+.02,z0],[120,y1+.02,z1],[3.0,y1+.02,z1]],n%2?'#b65338':'#a94c36',null);
      const sway=Math.sin(z0*.31)*.16;
      for(const x of [-7.4+Math.sin(z0)*.8,6.9+Math.cos(z0*.7)*.9]){
        const gy=floorAt(z0)+.03;line([x,gy,z0],[x+sway,gy+.35,z0],'#4e7c43',1.7);line([x,gy+.16,z0],[x-.14,gy+.27,z0],'#668c45',1);line([x,gy+.22,z0],[x+.15,gy+.32,z0],'#668c45',1);
@@ -112,10 +112,11 @@
    polygon([nose,l,keel],'#a3a094','#45443b',.8);polygon([nose,keel,r],'#d3d0c3','#45443b',.8);
  }
  function follow(dt,snap=false){
-   const k=snap?1:1-Math.exp(-12*dt),yawDelta=Math.atan2(Math.sin(flight.heading-camera.yaw),Math.cos(flight.heading-camera.yaw));
-   camera.yaw+=yawDelta*k;
-   camera.x+=(flight.x-Math.sin(camera.yaw)*1.1-camera.x)*k;
-   camera.y+=(flight.y+.52-camera.y)*k;camera.z+=(flight.z-Math.cos(camera.yaw)*1.1-camera.z)*k;
+   const k=snap?1:1-Math.exp(-7*dt);
+   // Stable chase camera: the valley stays level and never rotates with the plane.
+   camera.yaw=0;
+   camera.x+=(flight.x-camera.x)*k;
+   camera.y+=(flight.y+.52-camera.y)*k;camera.z+=(flight.z-1.1-camera.z)*k;
    const gamma=Math.atan2(flight.vy,Math.hypot(flight.vx,flight.vz));camera.pitch+=(clamp(gamma*.18,-.16,.12)-camera.pitch)*k;
  }
  function hud(){
