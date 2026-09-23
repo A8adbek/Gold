@@ -18,6 +18,11 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Mobile browser smoke test
         run: node tests/browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NotebookCave-Screenshots
+          path: /tmp/notebook-*.png
   build:
     runs-on: ubuntu-latest
     steps:
