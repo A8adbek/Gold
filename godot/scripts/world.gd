@@ -1,7 +1,7 @@
 extends Node3D
 
-const MAP_RADIUS := 180.0
-const GRID := 48
+const MAP_RADIUS := 360.0
+const GRID := 96
 const CELL := 7.5
 const SAND := Color("#c96b43")
 const SAND_LIGHT := Color("#e19a61")
@@ -40,6 +40,8 @@ func _ready() -> void:
 	_create_terrain()
 	_create_desert_details()
 	_create_canyon_details()
+	_create_dune_ridges()
+	_create_stratified_cliffs()
 	_create_plane()
 	_create_camera()
 	_create_hud()
@@ -216,8 +218,8 @@ func _create_desert_details() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 47291
 	for i in range(85):
-		var x := rng.randf_range(-145.0, 145.0)
-		var z := rng.randf_range(-145.0, 145.0)
+		var x := rng.randf_range(-310.0, 310.0)
+		var z := rng.randf_range(-310.0, 310.0)
 		if abs(x) < 8.0 and abs(z) < 20.0: continue
 		var y := _height(x, z)
 		if i % 5 == 0: _create_cactus(Vector3(x, y, z), rng.randf_range(.65, 1.35))
@@ -230,10 +232,57 @@ func _create_canyon_details() -> void:
 	rng.seed = 90817
 	for i in range(18):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		var x := side * rng.randf_range(42.0, 150.0)
-		var z := rng.randf_range(-150.0, 150.0)
+		var x := side * rng.randf_range(90.0, 320.0)
+		var z := rng.randf_range(-320.0, 320.0)
 		var y := _height(x, z)
 		_create_mesa(Vector3(x, y, z), rng.randf_range(3.0, 8.5), rng.randf_range(5.0, 13.0))
+
+func _create_dune_ridges() -> void:
+	# Low-poly dune shoulders create layered depth without a road or moving floor.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 119203
+	for i in range(34):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := side * rng.randf_range(45.0, 300.0)
+		var z := rng.randf_range(-320.0, 320.0)
+		var y := _height(x, z) - 0.8
+		var dune := MeshInstance3D.new()
+		var mesh := SphereMesh.new()
+		mesh.radial_segments = 12
+		mesh.rings = 5
+		mesh.height = rng.randf_range(8.0, 18.0)
+		mesh.radius = rng.randf_range(10.0, 24.0)
+		dune.mesh = mesh
+		dune.scale = Vector3(1.8, 0.42, 2.8)
+		dune.position = Vector3(x, y, z)
+		dune.rotation.y = rng.randf_range(-0.8, 0.8)
+		dune.material_override = _material(Color("#b95f42") if i % 3 else Color("#d68452"))
+		add_child(dune)
+
+func _create_stratified_cliffs() -> void:
+	# Stacked strata give the distant canyon walls a more detailed silhouette.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 44127
+	for i in range(16):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := side * rng.randf_range(110.0, 330.0)
+		var z := rng.randf_range(-330.0, 330.0)
+		var y := _height(x, z)
+		var root := Node3D.new()
+		root.position = Vector3(x, y, z)
+		root.rotation.y = rng.randf_range(-0.5, 0.5)
+		add_child(root)
+		for layer in range(3):
+			var slab := MeshInstance3D.new()
+			var mesh := CylinderMesh.new()
+			mesh.top_radius = rng.randf_range(5.0, 10.0) - layer * 0.35
+			mesh.bottom_radius = mesh.top_radius * 1.12
+			mesh.height = rng.randf_range(2.0, 4.0)
+			mesh.radial_segments = 8
+			slab.mesh = mesh
+			slab.position.y = layer * 3.0 + mesh.height * 0.5
+			slab.material_override = _material(Color("#774237") if layer == 0 else Color("#96503d") if layer == 1 else Color("#b96747"))
+			root.add_child(slab)
 
 func _create_mesa(pos: Vector3, radius: float, height: float) -> void:
 	var root := Node3D.new()
