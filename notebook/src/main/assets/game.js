@@ -113,11 +113,18 @@
  }
  function follow(dt,snap=false){
    const k=snap?1:1-Math.exp(-7*dt);
-   // Stable chase camera: the valley stays level and never rotates with the plane.
+   // World-locked dead-zone camera: the plane flies over fixed terrain instead of
+   // dragging the whole valley beneath it. Camera recenters only near the view edge.
    camera.yaw=0;
-   camera.x+=(flight.x-camera.x)*k;
-   camera.y+=(flight.y+.52-camera.y)*k;camera.z+=(flight.z-1.1-camera.z)*k;
-   const gamma=Math.atan2(flight.vy,Math.hypot(flight.vx,flight.vz));camera.pitch+=(clamp(gamma*.18,-.16,.12)-camera.pitch)*k;
+   const sideLimit=3.2,forwardLimit=10.5;
+   if(Math.abs(flight.x-camera.x)>sideLimit){
+     const target=flight.x-Math.sign(flight.x-camera.x)*sideLimit;
+     camera.x+=(target-camera.x)*k;
+   }
+   if(flight.z-camera.z>forwardLimit)camera.z+=(flight.z-forwardLimit-camera.z)*k;
+   if(camera.z-flight.z>2)camera.z+=(flight.z+2-camera.z)*k;
+   camera.y+=(3.5-camera.y)*k;
+   camera.pitch*=1-k;
  }
  function hud(){
    $('distance').textContent=Math.floor(flight.distance);$('altitude').textContent=Math.max(0,flight.altitude).toFixed(1);
