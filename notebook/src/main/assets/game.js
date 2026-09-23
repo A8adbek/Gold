@@ -47,8 +47,10 @@
    // Red Dune Valley: open sky, warm sand and sparse desert vegetation.
    const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#58b9db');sky.addColorStop(.48,'#b8e1df');sky.addColorStop(1,'#f7c47a');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
    if(valleyBackdrop.complete&&valleyBackdrop.naturalWidth){
-     const cropH=Math.floor(valleyBackdrop.naturalHeight*.66);
-     ctx.globalAlpha=.58;ctx.drawImage(valleyBackdrop,0,0,valleyBackdrop.naturalWidth,cropH,0,0,w,h*.72);ctx.globalAlpha=1;
+     // One continuous valley backdrop; never split the screen into an image half and a flat block.
+     const scale=Math.max(w/valleyBackdrop.naturalWidth,h/valleyBackdrop.naturalHeight);
+     const dw=valleyBackdrop.naturalWidth*scale,dh=valleyBackdrop.naturalHeight*scale;
+     ctx.globalAlpha=.9;ctx.drawImage(valleyBackdrop,(w-dw)*.5,(h-dh)*.5,dw,dh);ctx.globalAlpha=1;
    }
    const base=Math.floor(camera.z/4)*4;
    const mesaZ=base+92;
@@ -56,7 +58,7 @@
    for(let n=28;n>=0;n--){
      const z0=base+n*4,z1=z0+4,y0=floorAt(z0),y1=floorAt(z1);
      // One continuous sand surface: no runway-like strips or lane bands.
-     polygon([[-120,y0,z0],[120,y0,z0],[120,y1,z1],[-120,y1,z1]],'#d27647',null);
+     polygon([[-120,y0,z0],[120,y0,z0],[120,y1,z1],[-120,y1,z1]],'rgba(210,118,71,.16)',null);
      const sway=Math.sin(z0*.31)*.16;
      for(const x of [-7.4+Math.sin(z0)*.8,6.9+Math.cos(z0*.7)*.9]){
        const gy=floorAt(z0)+.03;line([x,gy,z0],[x+sway,gy+.35,z0],'#4e7c43',1.7);line([x,gy+.16,z0],[x-.14,gy+.27,z0],'#668c45',1);line([x,gy+.22,z0],[x+.15,gy+.32,z0],'#668c45',1);
@@ -70,11 +72,7 @@
        polygon([[x-.34,gy,z0],[x+.36,gy,z0],[x+.28,gy+.16,z0],[x-.2,gy+.22,z0]],'#7d3f31','#613228',.5);
      }
    }
-   if(flight.z<14){
-     polygon([[-.72,3.03,-1],[-.72,3.03,.25],[.72,3.03,.25],[.72,3.03,-1]],'#d18a50','#7f422f');
-     line([-.52,3.05,0],[-.52,3.6,0],'#6a3b2d',3);line([.52,3.05,0],[.52,3.6,0],'#6a3b2d',3);
-     if(state==='ready'){const z=-((pull&&pull.power)||0)*.25;line([-.52,3.55,0],[0,3.18,z],'#6a3b2d',2);line([0,3.18,z],[.52,3.55,0],'#6a3b2d',2);}
-   }
+   // No launch platform or red guide line: the plane starts directly in the open valley.
  }
  function box(o){
    const {x,y,z,rx,ry,rz}=o,c=o.type==='clip'?'#353530':'#99978d';
