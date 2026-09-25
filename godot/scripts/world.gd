@@ -195,7 +195,7 @@ func _create_terrain() -> void:
 func _create_plane() -> void:
 	plane = Node3D.new()
 	plane.position = Vector3(0, 9, 0)
-	plane.scale = Vector3(0.72, 0.72, 0.72)
+	plane.scale = Vector3(0.55, 0.55, 0.55)
 	add_child(plane)
 	var body := MeshInstance3D.new()
 	body.mesh = _paper_plane_mesh()
@@ -271,7 +271,7 @@ func _create_canyon_details() -> void:
 	rng.seed = 90817
 	for i in range(18):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		var x := side * rng.randf_range(90.0, 320.0)
+		var x := side * rng.randf_range(155.0, 350.0)
 		var z := rng.randf_range(-320.0, 320.0)
 		var y := _height(x, z)
 		_create_mesa(Vector3(x, y, z), rng.randf_range(3.0, 8.5), rng.randf_range(5.0, 13.0))
@@ -282,7 +282,7 @@ func _create_dune_ridges() -> void:
 	rng.seed = 119203
 	for i in range(34):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		var x := side * rng.randf_range(45.0, 300.0)
+		var x := side * rng.randf_range(120.0, 345.0)
 		var z := rng.randf_range(-320.0, 320.0)
 		var y := _height(x, z) - 0.8
 		var dune := MeshInstance3D.new()
@@ -304,7 +304,7 @@ func _create_stratified_cliffs() -> void:
 	rng.seed = 44127
 	for i in range(16):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		var x := side * rng.randf_range(110.0, 330.0)
+		var x := side * rng.randf_range(185.0, 355.0)
 		var z := rng.randf_range(-330.0, 330.0)
 		var y := _height(x, z)
 		var root := Node3D.new()
@@ -329,7 +329,7 @@ func _create_landmark_details() -> void:
 	rng.seed = 78104
 	for i in range(14):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		var x := side * rng.randf_range(70.0, 300.0)
+		var x := side * rng.randf_range(145.0, 350.0)
 		var z := rng.randf_range(-300.0, 300.0)
 		var y := _height(x, z)
 		var root := Node3D.new()
