@@ -129,7 +129,7 @@ func _height(x: float, z: float) -> float:
 	var tx := clampi(int((x + 360.0) / 720.0 * float(DEM_SIZE - 1)), 0, DEM_SIZE - 1)
 	var tz := clampi(int((z + 360.0) / 720.0 * float(DEM_SIZE - 1)), 0, DEM_SIZE - 1)
 	var raw := float(dem_data[tz * DEM_SIZE + tx])
-	var terrain_level := ((raw - float(dem_min)) / max(1.0, float(dem_max - dem_min))) * 34.0 - 10.0
+	var terrain_level: float = ((raw - float(dem_min)) / max(1.0, float(dem_max - dem_min))) * 34.0 - 10.0
 	return terrain_level + detail * 0.18
 
 func _load_elevation_tile() -> void:
