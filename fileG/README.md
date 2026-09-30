@@ -1,30 +1,24 @@
-# FileG (Termux)
+# FileG Android APK
 
-FileG — Android telefonda Termux orqali ishlaydigan YouTube havola tekshiruvchi va format tanlagich. U manbada mavjud video sifatlarini (4K, Full HD, HD yoki kichik format) va MP3 ni ko‘rsatadi, tanlanganni `Downloads/FileG` ichiga saqlaydi. Yuklash jarayoni ilova oynasidagi terminalda ko‘rinadi.
+FileG — Android uchun video format tekshiruvchi va yuklagich. YouTube havolasini kiritgandan so‘ng videoda mavjud sifatlarni (4K, Full HD, HD va kichikroq formatlar) ko‘rsatadi; foydalanuvchi video yoki MP3 ni tanlaydi. Yuklash jarayoni ilova ichidagi terminal panelida chiqadi, fayl `Downloads/FileG` ichiga saqlanadi.
 
-Hozirgi versiya APK emas: Termux va Python orqali ishga tushadi. Faqat o‘zingizga tegishli yoki yuklab olishga ruxsatingiz bor videolar uchun foydalaning; platforma qoidalari va mualliflik huquqiga rioya qiling.
+## APK build
 
-## Android’da ishga tushirish
+GitHub Actions `fileG` loyihasidan arm64 debug APK yig‘adi. Repozitoriyadagi **Actions → Build FileG APK → Artifacts → FileG-APK** dan yuklab oling. Telefoningizda APK faylini ochib o‘rnating. APK AArch64/arm64 qurilmalar uchun tuzilgan.
 
-1. Termux’ni ishonchli rasmiy manbadan o‘rnating va oching.
-2. Termux’da quyidagi buyruqlarni kiriting:
+Mahalliy build uchun Java 17, Android SDK (API 35) va Gradle 8.10.2 kerak:
 
 ```sh
-pkg update -y
-pkg install python ffmpeg git -y
-termux-setup-storage
-python -m pip install -U yt-dlp
-git clone https://github.com/A8adbek/Gold.git
-cd Gold/fileG
-python fileg.py
+gradle -p fileG --no-daemon assembleDebug
 ```
 
-3. Termux oynasi ochiq turgan holda telefondagi Chrome’da `http://127.0.0.1:8765` manzilini oching.
-4. YouTube havolasini tekshiring, mavjud formatdan birini tanlang va yuklab oling. Fayl `Internal storage/Download/FileG` ichida bo‘ladi.
+APK: `fileG/app/build/outputs/apk/debug/app-debug.apk`.
 
-## Eslatma
+## Muhim
 
-- 4K va Full HD faqat manbada shu sifat bo‘lsa chiqadi. Sifat va formatlar har bir videoda farq qiladi.
-- MP3 uchun `ffmpeg` zarur.
-- Server faqat telefonning o‘zidagi `127.0.0.1` manzilida ishlaydi; tarmoqdagi boshqa qurilmalar kira olmaydi.
-- YouTube o‘zgarishidan keyin xatolik chiqsa, `python -m pip install -U yt-dlp` bilan yangilang.
+- Video formatlari havoladagi manbaga qarab farq qiladi. 4K yoki Full HD har videoda bo‘lmaydi.
+- MP3 uchun ichiga qo‘shilgan FFmpeg ishlatiladi.
+- Faqat o‘zingizga tegishli yoki yuklab olishga ruxsatingiz bor videolardan foydalaning; platforma qoidalari va mualliflik huquqiga rioya qiling.
+- Android ilovasi `youtubedl-android` va uning FFmpeg modulidan foydalanadi. Litsenziyasi va manba eslatmalari [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) ichida.
+
+Oldingi Termux orqali ishlaydigan prototip uchun `fileg.py` va ildizdagi `index.html` saqlab qolingan.
