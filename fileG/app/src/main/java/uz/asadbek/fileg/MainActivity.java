@@ -155,10 +155,8 @@ public class MainActivity extends Activity {
             final String url = rawUrl == null ? "" : rawUrl.trim();
             final String format = selectedFormat == null ? "" : selectedFormat;
             boolean validFormat = "mp3".equals(format) || format.matches("video-[0-9]{1,4}");
-            boolean hasCurrentLookup = checkedUrl.isEmpty() || url.equals(checkedUrl);
-            boolean knownFormat = checkedChoices.isEmpty() || checkedChoices.contains(format);
-            if (!isYoutubeUrl(url) || !validFormat || !hasCurrentLookup || !knownFormat) {
-                js("window.onError('Havolani qayta tekshirib, formatni qaytadan tanlang.');"); return;
+            if (!isYoutubeUrl(url) || !validFormat) {
+                js("window.onError('YouTube havolasi yoki format tanlovi noto‘g‘ri.');"); return;
             }
             if (!engineReady || busy) { js("window.onError('Hozir boshqa ish bajarilmoqda yoki modul tayyor emas.');"); return; }
             busy = true;
