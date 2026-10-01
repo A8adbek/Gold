@@ -2,13 +2,17 @@ package uz.asadbek.fileg;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.webkit.JavascriptInterface;
+import android.webkit.MimeTypeMap;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -18,6 +22,7 @@ import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
 import com.yausername.youtubedl_android.mapper.VideoFormat;
 import com.yausername.youtubedl_android.mapper.VideoInfo;
+import androidx.core.content.FileProvider;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,14 +30,14 @@ import org.json.JSONObject;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import kotlin.Unit;
 
@@ -105,14 +110,14 @@ public class MainActivity extends Activity {
             if (busy) { js("window.onError('Yuklab olish davom etmoqda.');"); return; }
             busy = true;
             js("window.onBusy(true,'Havola tekshirilmoqda…');");
-            js("window.onProgress(5,'Havola tekshirilmoqda');");
+            js("window.onLookupProgress(2,'Havola tekshirilmoqda');");
             final long startedAt = System.currentTimeMillis();
             final Runnable lookupProgress = new Runnable() {
                 @Override public void run() {
                     if (!busy) return;
                     long seconds = (System.currentTimeMillis() - startedAt) / 1000;
-                    int percent = (int) Math.min(88, 12 + seconds * 3);
-                    js("window.onProgress(" + percent + ",'YouTube ma’lumoti olinmoqda · taxminiy');");
+                    int percent = (int) Math.min(68, 5 + seconds * 3);
+                    js("window.onLookupProgress(" + percent + ",'YouTube ma’lumoti olinmoqda · taxminiy');");
                     mainHandler.postDelayed(this, 700);
                 }
             };
@@ -120,13 +125,15 @@ public class MainActivity extends Activity {
             worker.execute(() -> {
                 try {
                     log("Havola tekshirilmoqda: " + url);
-                    // Init of the native FFmpeg engine is deferred until a download needs it.
                     VideoInfo info = YoutubeDL.getInstance().getInfo(url);
+                    js("window.onLookupProgress(72,'Video ma’lumoti olindi · formatlar qidirilmoqda');");
                     ArrayList<VideoFormat> sourceFormats = info.getFormats();
                     TreeSet<Integer> heights = new TreeSet<>(Collections.reverseOrder());
                     if (sourceFormats != null) for (VideoFormat f : sourceFormats) {
-                        if (f.getHeight() > 0 && f.getVcodec() != null && !"none".equals(f.getVcodec())) heights.add(f.getHeight());
+                        boolean hasVideo = f.getVcodec() != null && !"none".equals(f.getVcodec());
+                        if (hasVideo && f.getHeight() > 0) heights.add(f.getHeight());
                     }
+                    js("window.onLookupProgress(82,'Video sifatlari saralanmoqda');");
                     JSONArray options = new JSONArray();
                     checkedChoices.clear();
                     for (Integer h : heights) {
@@ -141,9 +148,10 @@ public class MainActivity extends Activity {
                     result.put("title", info.getTitle() == null ? "YouTube video" : info.getTitle());
                     result.put("duration", info.getDuration() > 0 ? String.format(Locale.ROOT, "%d:%02d", info.getDuration()/60, info.getDuration()%60) : "");
                     result.put("formats", options);
+                    js("window.onLookupProgress(94,'Format variantlari tayyorlanmoqda');");
                     js("window.onFormats(" + JSONObject.quote(result.toString()) + ");");
                     log("Topildi: " + result.optString("title") + " · " + heights.size() + " xil video sifati va MP3");
-                    js("window.onProgress(100,'Formatlar tayyor');");
+                    js("window.onLookupProgress(100,'Formatlar tayyor');");
                 } catch (Exception e) {
                     checkedUrl = ""; checkedChoices.clear();
                     js("window.onError(" + JSONObject.quote("Tekshirishda xatolik: " + safeMessage(e)) + ");");
@@ -161,10 +169,10 @@ public class MainActivity extends Activity {
             if (!engineReady || busy) { js("window.onError('Hozir boshqa ish bajarilmoqda yoki modul tayyor emas.');"); return; }
             busy = true;
             js("window.onBusy(true,'Yuklab olinmoqda…');");
-            js("window.onProgress(2,'Yuklashga tayyorlanmoqda');");
+                    js("window.onDownloadProgress(2,'Yuklashga tayyorlanmoqda');");
             worker.execute(() -> {
                 try {
-                    js("window.onProgress(8,'Yuklashga tayyorlanmoqda');");
+                    js("window.onDownloadProgress(8,'Yuklashga tayyorlanmoqda');");
                     FFmpeg.getInstance().init(getApplicationContext());
                     File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "FileG");
                     if (!folder.exists() && !folder.mkdirs()) throw new IllegalStateException("Downloads/FileG papkasini yaratib bo‘lmadi.");
@@ -179,21 +187,114 @@ public class MainActivity extends Activity {
                         request.addOption("--merge-output-format", "mp4");
                     }
                     log("Yuklab olish boshlandi. Saqlanadigan joy: Downloads/FileG");
-                    js("window.onProgress(10,'Yuklash boshlandi');");
+                    js("window.onDownloadProgress(10,'Yuklash boshlandi');");
+                    AtomicReference<String> outputPath = new AtomicReference<>("");
                     YoutubeDL.getInstance().execute(request, null, (progress, eta, line) -> {
                         int percent = Math.max(0, Math.min(99, Math.round(progress)));
-                        js("window.onProgress(" + percent + ",'Yuklab olinmoqda');");
-                        if (line != null && !line.trim().isEmpty()) log(line);
+                        js("window.onDownloadProgress(" + percent + ",'Yuklab olinmoqda');");
+                        if (line != null && !line.trim().isEmpty()) {
+                            String parsedPath = extractOutputPath(line);
+                            if (parsedPath != null) outputPath.set(parsedPath);
+                            log(line);
+                        }
                         return Unit.INSTANCE;
                     });
+                    File finished = resolveOutputFile(folder, outputPath.get());
                     log("Yuklash tugadi. Downloads/FileG papkasidan topasiz.");
-                    js("window.onProgress(100,'Yuklash yakunlandi');");
-                    js("window.onDownloadDone('Downloads/FileG');");
+                    js("window.onDownloadProgress(100,'Yuklash yakunlandi');");
+                    if (finished != null) {
+                        String mime = mimeFor(finished.getName());
+                        js("window.onDownloadDone(" + JSONObject.quote(finished.getName()) + "," + JSONObject.quote(mime) + ");");
+                    } else {
+                        js("window.onDownloadDone('', '');");
+                    }
+                    listDownloads();
                 } catch (Exception e) {
                     js("window.onError(" + JSONObject.quote("Yuklashda xatolik: " + safeMessage(e)) + ");");
                 } finally { busy = false; js("window.onBusy(false,'Tayyor');"); }
             });
         }
+
+        @JavascriptInterface public void playFile(String rawName) {
+            if (rawName == null || rawName.trim().isEmpty() || rawName.contains("/") || rawName.contains("\\")) {
+                js("window.onError('Fayl nomi noto‘g‘ri.');"); return;
+            }
+            File folder = downloadsFolder();
+            try {
+                File file = new File(folder, rawName).getCanonicalFile();
+                if (!folder.getCanonicalFile().equals(file.getParentFile()) || !file.isFile()) {
+                    js("window.onError('Yuklangan fayl topilmadi.');"); return;
+                }
+                Uri uri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".fileprovider", file);
+                Intent view = new Intent(Intent.ACTION_VIEW);
+                view.setDataAndType(uri, mimeFor(file.getName()));
+                view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                runOnUiThread(() -> {
+                    try { startActivity(Intent.createChooser(view, mimeFor(file.getName()).startsWith("audio/") ? "Audioni tinglash" : "Videoni ko‘rish")); }
+                    catch (ActivityNotFoundException e) { js("window.onError('Bu faylni ochadigan pleyer topilmadi. Telefonga video/audio pleyer o‘rnating.');"); }
+                });
+            } catch (Exception e) { js("window.onError(" + JSONObject.quote("Faylni ochib bo‘lmadi: " + safeMessage(e)) + ");"); }
+        }
+
+        @JavascriptInterface public void listDownloads() {
+            File folder = downloadsFolder();
+            JSONArray entries = new JSONArray();
+            File[] files = folder.listFiles();
+            if (files != null) {
+                Arrays.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+                for (File file : files) {
+                    if (!file.isFile() || !isPlayable(file.getName())) continue;
+                    JSONObject item = new JSONObject();
+                    try { item.put("name", file.getName()); item.put("bytes", file.length()); item.put("mime", mimeFor(file.getName())); item.put("updated", file.lastModified()); entries.put(item); }
+                    catch (Exception ignored) { }
+                }
+            }
+            js("window.onDownloadedFiles(" + JSONObject.quote(entries.toString()) + ");");
+        }
+    }
+
+    private File downloadsFolder() { return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "FileG"); }
+
+    private static String mimeFor(String name) {
+        String ext = "";
+        int dot = name.lastIndexOf('.');
+        if (dot >= 0 && dot < name.length() - 1) ext = name.substring(dot + 1).toLowerCase(Locale.ROOT);
+        String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+        if (mime != null) return mime;
+        if ("mp3".equals(ext)) return "audio/mpeg";
+        if ("m4a".equals(ext)) return "audio/mp4";
+        if ("opus".equals(ext)) return "audio/ogg";
+        return "application/octet-stream";
+    }
+
+    private static boolean isPlayable(String name) {
+        String ext = "";
+        int dot = name.lastIndexOf('.');
+        if (dot >= 0) ext = name.substring(dot + 1).toLowerCase(Locale.ROOT);
+        return Arrays.asList("mp4", "m4v", "webm", "mkv", "3gp", "mov", "mp3", "m4a", "aac", "wav", "ogg", "opus", "flac").contains(ext);
+    }
+
+    private static String extractOutputPath(String line) {
+        String[] markers = {"[download] Destination:", "[Merger] Merging formats into", "[ExtractAudio] Destination:"};
+        for (String marker : markers) {
+            int at = line.indexOf(marker);
+            if (at < 0) continue;
+            String value = line.substring(at + marker.length()).trim();
+            if (value.length() >= 2 && ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'")))) value = value.substring(1, value.length() - 1);
+            return value;
+        }
+        return null;
+    }
+
+    private static File resolveOutputFile(File folder, String outputPath) {
+        if (outputPath != null && !outputPath.isEmpty()) {
+            File candidate = new File(outputPath);
+            if (candidate.isFile() && isPlayable(candidate.getName())) return candidate;
+        }
+        File[] files = folder.listFiles((dir, name) -> isPlayable(name));
+        if (files == null || files.length == 0) return null;
+        Arrays.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        return files[0];
     }
 
     @Override protected void onDestroy() { mainHandler.removeCallbacksAndMessages(null); if (web != null) web.destroy(); worker.shutdownNow(); super.onDestroy(); }

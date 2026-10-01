@@ -1,34 +1,174 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10131a"><title>FileG</title>
-<style>
-:root{color-scheme:dark;--bg:#10131a;--panel:#191e29;--line:#2b3342;--muted:#9ba6b9;--green:#9fe870;--blue:#80b5ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0,#1b2a35,transparent 45%),var(--bg);color:#f5f7fb;font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}.wrap{max-width:760px;margin:auto;padding:24px 16px 36px}.brand{display:flex;align-items:center;gap:12px;margin:8px 0 24px}.logo{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--green);color:#111;font-weight:900;font-size:22px}.brand b{font-size:21px}.brand small{display:block;color:var(--muted)}h1{font-size:28px;line-height:1.15;margin:0 0 10px}p{color:var(--muted);line-height:1.5;margin:0 0 22px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.label{font-size:13px;color:#c1cada;margin-bottom:8px}input,select{width:100%;background:#10141d;color:#fff;border:1px solid #394253;border-radius:12px;padding:14px;font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button{width:100%;border:0;border-radius:12px;padding:14px 16px;margin-top:12px;font:700 16px system-ui;cursor:pointer;background:var(--green);color:#10160e}button:disabled{opacity:.5;cursor:wait}.secondary{background:#293343;color:#e8eef8}.note{font-size:12px;line-height:1.45;color:var(--muted);margin-top:12px}.result{display:none}.title{font-weight:700;margin-bottom:6px;overflow-wrap:anywhere}.terminal{background:#080b10;border:1px solid #283142;border-radius:12px;padding:12px;height:180px;overflow:auto;color:#b8e6a3;font:12px/1.6 ui-monospace,monospace;white-space:pre-wrap;word-break:break-word}.termhead{display:flex;justify-content:space-between;color:#adb8cb;font-size:12px;margin-bottom:8px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#64db82;margin-right:6px}.error{color:#ff9b9b;margin-top:10px;font-size:13px}.status{color:var(--blue);font-size:13px;margin-top:9px}.progress{height:10px;border-radius:99px;background:#0e121a;overflow:hidden;margin-top:11px;border:1px solid #30394a}.progress>i{display:block;width:0;height:100%;background:linear-gradient(90deg,#80b5ff,#9fe870);transition:width .25s}.progressline{font-size:12px;color:#b9c8dd;margin-top:6px}.history{display:grid;gap:10px}.historyitem{border:1px solid var(--line);background:#121720;border-radius:13px;padding:12px}.historytitle{font-weight:650;overflow-wrap:anywhere}.historymeta{color:var(--muted);font-size:12px;margin-top:5px}.historyitem button{margin-top:9px}.empty{font-size:13px;color:var(--muted)}.footer{text-align:center;font-size:12px;color:#717e91;margin-top:22px}@media(max-width:420px){h1{font-size:25px}}
-</style></head><body><main class="wrap"><header class="brand"><div class="logo">G</div><div><b>FileG</b><small>Video va audio yuklagich</small></div></header><h1>Havolani kiriting,<br>formatni tanlang</h1><p>Havola va topilgan formatlar tarixda saqlanadi. Keyinroq qaytib, davom ettirishingiz mumkin.</p>
-<section class="card"><div class="label">YouTube havolasi</div><input id="url" type="url" placeholder="https://youtu.be/..." autocomplete="url"><button id="check" onclick="checkUrl()">Formatlarni tekshirish</button><div class="note">Faqat o‘zingizga tegishli yoki yuklab olishga ruxsatingiz bor videolar uchun foydalaning.</div><div id="err" class="error"></div></section>
-<section id="result" class="card result"><div id="title" class="title"></div><div id="duration" class="note"></div><div class="label" style="margin-top:16px">Mavjud format</div><select id="format" onchange="rememberSelection()"></select><button id="download" onclick="downloadSelected()">Tanlangan formatni yuklab olish</button><div id="status" class="status"></div><div class="progress"><i id="bar"></i></div><div id="progressline" class="progressline">Tayyor</div></section>
-<section class="card"><div class="termhead"><span><i class="dot"></i>Terminal</span><span id="termstate">ishga tushmoqda</span></div><div id="terminal" class="terminal">FileG terminali
-&gt; Yuklash moduli ishga tushmoqda…</div></section>
-<section class="card"><div class="termhead"><b>Havolalar tarixi</b><span id="historycount">0 ta</span></div><div id="history" class="history"><div class="empty">Tekshirilgan havolalar shu yerda saqlanadi.</div></div></section><div class="footer">Fayllar Downloads/FileG ichiga saqlanadi</div></main>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10131a">
+  <title>FileG</title>
+  <style>
+    :root{color-scheme:dark;--bg:#10131a;--panel:#191e29;--line:#2b3342;--muted:#9ba6b9;--green:#9fe870;--blue:#80b5ff}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(ellipse at 15% 0,#1b2a35,transparent 45%),var(--bg);color:#f5f7fb;font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+    .wrap{max-width:760px;margin:auto;padding:24px 16px 36px}
+    .brand{display:flex;align-items:center;gap:12px;margin:8px 0 24px}
+    .logo{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--green);color:#111;font-weight:900;font-size:22px}
+    .brand b{font-size:21px}.brand small{display:block;color:var(--muted)}
+    h1{font-size:28px;line-height:1.15;margin:0 0 10px}
+    p{color:var(--muted);line-height:1.5;margin:0 0 22px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}
+    .label{font-size:13px;color:#c1cada;margin-bottom:8px}
+    input,select{width:100%;background:#10141d;color:#fff;border:1px solid #394253;border-radius:12px;padding:14px;font:inherit;outline:none}
+    input:focus,select:focus{border-color:var(--blue)}
+    button{width:100%;border:0;border-radius:12px;padding:14px 16px;margin-top:12px;font:700 16px system-ui;cursor:pointer;background:var(--green);color:#10160e}
+    button:disabled{opacity:.5;cursor:wait}.secondary{background:#293343;color:#e8eef8}
+    .note{font-size:12px;line-height:1.45;color:var(--muted);margin-top:12px}
+    .result{display:none}.title{font-weight:700;margin-bottom:6px;overflow-wrap:anywhere}
+    .terminal{background:#080b10;border:1px solid #283142;border-radius:12px;padding:12px;height:180px;overflow:auto;color:#b8e6a3;font:12px/1.6 ui-monospace,monospace;white-space:pre-wrap;word-break:break-word}
+    .termhead{display:flex;justify-content:space-between;color:#adb8cb;font-size:12px;margin-bottom:8px}
+    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#64db82;margin-right:6px}
+    .error{color:#ff9b9b;margin-top:10px;font-size:13px}.status{color:var(--blue);font-size:13px;margin-top:9px}
+    .progress{height:10px;border-radius:99px;background:#0e121a;overflow:hidden;margin-top:11px;border:1px solid #30394a}
+    .progress>i{display:block;width:0;height:100%;background:linear-gradient(90deg,#80b5ff,#9fe870);transition:width .25s}
+    .progressline{font-size:12px;color:#b9c8dd;margin-top:6px}
+    .history{display:grid;gap:10px}.historyitem{border:1px solid var(--line);background:#121720;border-radius:13px;padding:12px}
+    .historytitle{font-weight:650;overflow-wrap:anywhere}.historymeta{color:var(--muted);font-size:12px;margin-top:5px}
+    .historyitem button{margin-top:9px}.empty{font-size:13px;color:var(--muted)}
+    .footer{text-align:center;font-size:12px;color:#717e91;margin-top:22px}
+    @media(max-width:420px){h1{font-size:25px}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="brand"><div class="logo">G</div><div><b>FileG</b><small>Video va audio yuklagich</small></div></header>
+  <h1>Havolani kiriting,<br>formatni tanlang</h1>
+  <p>Havola va topilgan formatlar tarixda saqlanadi. Yuklangan fayl tayyor bo‘lgach, telefon pleyerida ochiladi.</p>
+
+  <section class="card">
+    <div class="label">YouTube havolasi</div>
+    <input id="url" type="url" placeholder="https://youtu.be/..." autocomplete="url">
+    <button id="check" onclick="checkUrl()">Formatlarni tekshirish</button>
+    <div id="lookupProgress" style="display:none">
+      <div class="progress"><i id="lookupBar"></i></div>
+      <div id="lookupLine" class="progressline">Tekshiruv boshlanmoqda · 0%</div>
+    </div>
+    <div class="note">Faqat o‘zingizga tegishli yoki yuklab olishga ruxsatingiz bor videolar uchun foydalaning.</div>
+    <div id="err" class="error"></div>
+  </section>
+
+  <section id="result" class="card result">
+    <div id="title" class="title"></div>
+    <div id="duration" class="note"></div>
+    <div class="label" style="margin-top:16px">Mavjud format</div>
+    <select id="format" onchange="rememberSelection()"></select>
+    <button id="download" onclick="downloadSelected()">Tanlangan formatni yuklab olish</button>
+    <div id="status" class="status"></div>
+    <div id="downloadProgress">
+      <div class="progress"><i id="downloadBar"></i></div>
+      <div id="downloadLine" class="progressline">Tayyor</div>
+    </div>
+    <div id="readyToPlay" style="display:none;margin-top:12px">
+      <div class="status">Yuklab olingan fayl tayyor.</div>
+      <button class="secondary" onclick="playCurrentFile()">Videoni ko‘rish / audioni tinglash</button>
+      <div class="note">Fayl telefoningizdagi mos pleyerda ochiladi.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="termhead"><span><i class="dot"></i>Terminal</span><span id="termstate">ishga tushmoqda</span></div>
+    <div id="terminal" class="terminal">FileG terminali
+&gt; Yuklash moduli ishga tushmoqda…</div>
+  </section>
+
+  <section class="card">
+    <div class="termhead"><b>Yuklab olingan fayllar</b><span id="downloadedCount">0 ta</span></div>
+    <div id="downloadedFiles" class="history"><div class="empty">Hali fayl yuklanmagan.</div></div>
+  </section>
+
+  <section class="card">
+    <div class="termhead"><b>Havolalar tarixi</b><span id="historycount">0 ta</span></div>
+    <div id="history" class="history"><div class="empty">Tekshirilgan havolalar shu yerda saqlanadi.</div></div>
+  </section>
+  <div class="footer">Fayllar Downloads/FileG ichiga saqlanadi</div>
+</main>
 <script>
-const $=id=>document.getElementById(id),term=$('terminal'),STORE='fileg.history.v1';let items=[];let autoDownload=false;
+const $=id=>document.getElementById(id),term=$('terminal'),STORE='fileg.history.v1';
+let items=[],autoDownload=false,lastFileName='';
 try{items=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(items))items=[]}catch(e){items=[]}
 function write(s){term.textContent+='\n'+s;term.scrollTop=term.scrollHeight}
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(items.slice(0,30)))}catch(e){}renderHistory()}
 function current(){return items.find(x=>x.url===$('url').value.trim())}
-function saveEntry(data){let url=data.url||$('url').value.trim(),old=items.find(x=>x.url===url);if(old)Object.assign(old,data,{url,updated:Date.now()});else items.unshift(Object.assign({url,updated:Date.now()},data));items.sort((a,b)=>(b.updated||0)-(a.updated||0));items=items.slice(0,30);persist()}
-function renderHistory(){const root=$('history');root.innerHTML='';$('historycount').textContent=items.length+' ta';if(!items.length){root.innerHTML='<div class="empty">Tekshirilgan havolalar shu yerda saqlanadi.</div>';return}items.forEach((x,i)=>{const card=document.createElement('div');card.className='historyitem';const title=document.createElement('div');title.className='historytitle';title.textContent=x.title||x.url;const meta=document.createElement('div');meta.className='historymeta';meta.textContent=(x.formats&&x.formats.length?x.formats.length+' ta format':'Tekshirish kutilmoqda')+' · '+(x.status==='done'?'yuklandi':x.status==='downloading'?'yuklash uzilgan bo‘lishi mumkin':'saqlangan');const b=document.createElement('button');b.className='secondary';b.textContent='Davom ettirish';b.onclick=()=>resume(i);card.append(title,meta,b);root.append(card)})}
-function showFormats(x){$('url').value=x.url;$('title').textContent=x.title||'YouTube video';$('duration').textContent=x.duration?'Davomiyligi: '+x.duration:'';$('format').innerHTML='';(x.formats||[]).forEach(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.label;$('format').appendChild(o)});if(x.selected&&Array.from($('format').options).some(o=>o.value===x.selected))$('format').value=x.selected;$('result').style.display=x.formats&&x.formats.length?'block':'none'}
-function resume(i){const x=items[i];if(!x)return;showFormats(x);$('err').textContent='';if(x.formats&&x.formats.length){$('status').textContent=x.status==='downloading'?'Qisman yuklangan fayl davom ettiriladi.':'Saqlangan formatlar tayyor.';$('progressline').textContent='Tarixdan tiklandi';if(x.status==='downloading'){downloadSelected()}else window.scrollTo({top:0,behavior:'smooth'})}else{checkUrl()}}
-function checkUrl(){const url=$('url').value.trim();$('err').textContent='';$('result').style.display='none';$('check').disabled=true;$('termstate').textContent='tekshirilmoqda';setProgress(5,'Tekshiruv boshlandi');write('&gt; Havola tekshirilmoqda…');saveEntry({url,status:'checking'});FileG.inspect(url)}
-function downloadSelected(){const url=$('url').value.trim();if(!url||!$('format').value){$('err').textContent='Avval havolani tekshiring va format tanlang.';return}$('err').textContent='';$('download').disabled=true;$('status').textContent='Yuklab olishga tayyorlanmoqda…';saveEntry({url,title:$('title').textContent,formats:Array.from($('format').options).map(o=>({id:o.value,label:o.textContent})),selected:$('format').value,status:'downloading'});setProgress(1,'Yuklashga tayyorlanmoqda');FileG.download(url,$('format').value)}
+function saveEntry(data){const url=data.url||$('url').value.trim(),old=items.find(x=>x.url===url);if(old)Object.assign(old,data,{url,updated:Date.now()});else items.unshift(Object.assign({url,updated:Date.now()},data));items.sort((a,b)=>(b.updated||0)-(a.updated||0));items=items.slice(0,30);persist()}
+function renderHistory(){
+  const root=$('history');root.innerHTML='';$('historycount').textContent=items.length+' ta';
+  if(!items.length){root.innerHTML='<div class="empty">Tekshirilgan havolalar shu yerda saqlanadi.</div>';return}
+  items.forEach((x,i)=>{
+    const card=document.createElement('div');card.className='historyitem';
+    const title=document.createElement('div');title.className='historytitle';title.textContent=x.title||x.url;
+    const meta=document.createElement('div');meta.className='historymeta';meta.textContent=(x.formats&&x.formats.length?x.formats.length+' ta format':'Tekshirish kutilmoqda')+' · '+(x.status==='done'?'yuklandi':x.status==='downloading'?'yuklash uzilgan bo‘lishi mumkin':'saqlangan');
+    const resumeBtn=document.createElement('button');resumeBtn.className='secondary';resumeBtn.textContent='Davom ettirish';resumeBtn.onclick=()=>resume(i);
+    card.append(title,meta,resumeBtn);
+    if(x.downloadedFile){const play=document.createElement('button');play.className='secondary';play.textContent='Yuklangan faylni ko‘rish / tinglash';play.onclick=()=>FileG.playFile(x.downloadedFile);card.append(play)}
+    root.append(card);
+  });
+}
+function showFormats(x){
+  $('url').value=x.url;$('title').textContent=x.title||'YouTube video';$('duration').textContent=x.duration?'Davomiyligi: '+x.duration:'';
+  $('format').innerHTML='';(x.formats||[]).forEach(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.label;$('format').appendChild(o)});
+  if(x.selected&&Array.from($('format').options).some(o=>o.value===x.selected))$('format').value=x.selected;
+  $('result').style.display=x.formats&&x.formats.length?'block':'none';
+}
+function resume(i){
+  const x=items[i];if(!x)return;showFormats(x);$('err').textContent='';
+  if(x.downloadedFile){lastFileName=x.downloadedFile;$('readyToPlay').style.display='block'}
+  if(x.formats&&x.formats.length){$('status').textContent=x.status==='downloading'?'Qisman yuklangan fayl davom ettiriladi.':'Saqlangan formatlar tayyor.';$('downloadLine').textContent='Tarixdan tiklandi';if(x.status==='downloading')downloadSelected();else window.scrollTo({top:0,behavior:'smooth'})}
+  else checkUrl();
+}
+function checkUrl(){
+  const url=$('url').value.trim();$('err').textContent='';$('result').style.display='none';$('lookupProgress').style.display='block';
+  $('check').disabled=true;$('termstate').textContent='tekshirilmoqda';setLookupProgress(1,'Havolani tekshirish boshlandi');
+  write('&gt; Havola tekshirilmoqda…');saveEntry({url,status:'checking'});FileG.inspect(url);
+}
+function downloadSelected(){
+  const url=$('url').value.trim();if(!url||!$('format').value){$('err').textContent='Avval havolani tekshiring va format tanlang.';return}
+  $('err').textContent='';$('download').disabled=true;$('status').textContent='Yuklab olishga tayyorlanmoqda…';$('readyToPlay').style.display='none';
+  saveEntry({url,title:$('title').textContent,formats:Array.from($('format').options).map(o=>({id:o.value,label:o.textContent})),selected:$('format').value,status:'downloading'});
+  setDownloadProgress(1,'Yuklashga tayyorlanmoqda');FileG.download(url,$('format').value);
+}
 function rememberSelection(){const x=current();if(x){x.selected=$('format').value;x.updated=Date.now();persist()}}
-function setProgress(n,label){$('bar').style.width=Math.max(0,Math.min(100,n))+'%';$('progressline').textContent=label+' · '+Math.round(n)+'%'}
+function setLookupProgress(n,label){$('lookupBar').style.width=Math.max(0,Math.min(100,n))+'%';$('lookupLine').textContent=label+' · '+Math.round(n)+'%'}
+function setDownloadProgress(n,label){$('downloadBar').style.width=Math.max(0,Math.min(100,n))+'%';$('downloadLine').textContent=label+' · '+Math.round(n)+'%'}
+function playCurrentFile(){if(lastFileName)FileG.playFile(lastFileName)}
 window.onLog=s=>write(String(s));
 window.onError=s=>{$('err').textContent=String(s);$('status').textContent='';$('check').disabled=false;$('download').disabled=false;autoDownload=false;const x=current();if(x){x.status='ready';x.updated=Date.now();persist()}write('XATOLIK: '+s);$('termstate').textContent='xatolik'};
 window.onBusy=(busy,label)=>{$('termstate').textContent=label||(busy?'ishlayapti':'tayyor');if(!busy)$('check').disabled=false};
-window.onProgress=(n,label)=>setProgress(n,label);
-window.onFormats=raw=>{try{const data=JSON.parse(raw),url=$('url').value.trim(),x={url,title:data.title,duration:data.duration,formats:data.formats,status:'ready',updated:Date.now()};saveEntry(x);showFormats(x);$('status').textContent='';write('&gt; '+data.formats.length+' format topildi.');if(autoDownload){autoDownload=false;setTimeout(downloadSelected,100)}}catch(e){window.onError('Formatlar ro‘yxatini o‘qib bo‘lmadi.')}};
-window.onDownloadDone=path=>{$('status').textContent='Tayyor — '+path+' ichida saqlandi.';$('download').disabled=false;setProgress(100,'Yuklash tugadi');const x=current();if(x){x.status='done';x.updated=Date.now();persist()}};
+window.onLookupProgress=(n,label)=>setLookupProgress(n,label);
+window.onDownloadProgress=(n,label)=>setDownloadProgress(n,label);
+window.onFormats=raw=>{
+  try{const data=JSON.parse(raw),url=$('url').value.trim(),x={url,title:data.title,duration:data.duration,formats:data.formats,status:'ready',updated:Date.now()};saveEntry(x);showFormats(x);$('status').textContent='';$('lookupProgress').style.display='block';write('&gt; '+data.formats.length+' format topildi.');if(autoDownload){autoDownload=false;setTimeout(downloadSelected,100)}}
+  catch(e){window.onError('Formatlar ro‘yxatini o‘qib bo‘lmadi.')}
+};
+window.onDownloadDone=(fileName,mime)=>{
+  lastFileName=String(fileName||'');$('download').disabled=false;
+  $('status').textContent=fileName?'Yuklandi: Downloads/FileG/'+fileName:'Yuklash tugadi. Fayllar ro‘yxatini tekshiring.';
+  setDownloadProgress(100,'Yuklash tugadi');if(fileName)$('readyToPlay').style.display='block';
+  const x=current();if(x){x.status='done';x.downloadedFile=fileName||'';x.updated=Date.now();persist()}FileG.listDownloads();
+};
+window.onDownloadedFiles=raw=>{
+  try{
+    const files=JSON.parse(raw),root=$('downloadedFiles');root.innerHTML='';$('downloadedCount').textContent=files.length+' ta';
+    if(!files.length){root.innerHTML='<div class="empty">Hali fayl yuklanmagan.</div>';return}
+    files.forEach(f=>{
+      const card=document.createElement('div');card.className='historyitem';
+      const title=document.createElement('div');title.className='historytitle';title.textContent=f.name;
+      const meta=document.createElement('div');meta.className='historymeta';meta.textContent=f.mime+' · '+(f.bytes<1048576?(f.bytes/1024).toFixed(1)+' KB':(f.bytes/1048576).toFixed(1)+' MB');
+      const button=document.createElement('button');button.className='secondary';button.textContent=f.mime.startsWith('audio/')?'Audioni tinglash':'Videoni ko‘rish';button.onclick=()=>FileG.playFile(f.name);
+      card.append(title,meta,button);root.append(card);
+    });
+  }catch(e){$('downloadedFiles').innerHTML='<div class="empty">Fayllar ro‘yxatini o‘qib bo‘lmadi.</div>'}
+};
 renderHistory();
-// Open the most recent saved link automatically, so leaving and reopening returns to the same work.
-if(items.length){showFormats(items[0]);$('progressline').textContent='Oxirgi havola tarixdan tiklandi'}
-</script></body></html>
+if(items.length){showFormats(items[0]);lastFileName=items[0].downloadedFile||'';if(lastFileName)$('readyToPlay').style.display='block';$('downloadLine').textContent='Oxirgi havola tarixdan tiklandi'}
+FileG.listDownloads();
+</script>
+</body>
+</html>
