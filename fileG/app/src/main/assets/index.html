@@ -47,6 +47,7 @@
     <div class="label">YouTube havolasi</div>
     <input id="url" type="url" placeholder="https://youtu.be/..." autocomplete="url">
     <button id="check" onclick="checkUrl()">Formatlarni tekshirish</button>
+    <button id="refresh" class="secondary" style="display:none" onclick="checkUrl(true)">Variantlarni yangilash</button>
     <div id="lookupProgress" style="display:none">
       <div class="progress"><i id="lookupBar"></i></div>
       <div id="lookupLine" class="progressline">Tekshiruv boshlanmoqda · 0%</div>
@@ -116,6 +117,7 @@ function showFormats(x){
   $('format').innerHTML='';(x.formats||[]).forEach(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.label;$('format').appendChild(o)});
   if(x.selected&&Array.from($('format').options).some(o=>o.value===x.selected))$('format').value=x.selected;
   $('result').style.display=x.formats&&x.formats.length?'block':'none';
+  $('refresh').style.display=x.formats&&x.formats.length?'block':'none';
 }
 function resume(i){
   const x=items[i];if(!x)return;showFormats(x);$('err').textContent='';
@@ -123,9 +125,11 @@ function resume(i){
   if(x.formats&&x.formats.length){$('status').textContent=x.status==='downloading'?'Qisman yuklangan fayl davom ettiriladi.':'Saqlangan formatlar tayyor.';$('downloadLine').textContent='Tarixdan tiklandi';if(x.status==='downloading')downloadSelected();else window.scrollTo({top:0,behavior:'smooth'})}
   else checkUrl();
 }
-function checkUrl(){
+function checkUrl(forceRefresh=false){
   const url=$('url').value.trim();$('err').textContent='';$('result').style.display='none';$('lookupProgress').style.display='block';
-  $('check').disabled=true;$('termstate').textContent='tekshirilmoqda';setLookupProgress(1,'Havolani tekshirish boshlandi');
+  const cached=!forceRefresh&&items.find(x=>x.url===url&&x.formats&&x.formats.length&&x.title);
+  if(cached){showFormats(cached);$('status').textContent='';$('termstate').textContent='saqlangan formatlar';setLookupProgress(100,'Oldin topilgan formatlar tarixdan ko‘rsatildi');write('&gt; Saqlangan formatlar darhol ochildi. Yangilash uchun “Variantlarni yangilash”ni bosing.');return}
+  $('refresh').style.display='none';$('check').disabled=true;$('termstate').textContent='tekshirilmoqda';setLookupProgress(1,'Havolani tekshirish boshlandi');
   write('&gt; Havola tekshirilmoqda…');saveEntry({url,status:'checking'});FileG.inspect(url);
 }
 function downloadSelected(){

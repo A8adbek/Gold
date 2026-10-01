@@ -125,7 +125,9 @@ public class MainActivity extends Activity {
             worker.execute(() -> {
                 try {
                     log("Havola tekshirilmoqda: " + url);
+                    long infoStartedAt = System.currentTimeMillis();
                     VideoInfo info = YoutubeDL.getInstance().getInfo(url);
+                    log("YouTube ma’lumotini olish: " + String.format(Locale.ROOT, "%.1f", (System.currentTimeMillis() - infoStartedAt) / 1000.0) + " soniya");
                     js("window.onLookupProgress(72,'Video ma’lumoti olindi · formatlar qidirilmoqda');");
                     ArrayList<VideoFormat> sourceFormats = info.getFormats();
                     TreeSet<Integer> heights = new TreeSet<>(Collections.reverseOrder());
@@ -134,6 +136,7 @@ public class MainActivity extends Activity {
                         if (hasVideo && f.getHeight() > 0) heights.add(f.getHeight());
                     }
                     js("window.onLookupProgress(82,'Video sifatlari saralanmoqda');");
+                    long variantsStartedAt = System.currentTimeMillis();
                     JSONArray options = new JSONArray();
                     checkedChoices.clear();
                     for (Integer h : heights) {
@@ -144,6 +147,7 @@ public class MainActivity extends Activity {
                     }
                     JSONObject mp3 = new JSONObject(); mp3.put("id", "mp3"); mp3.put("label", "MP3 · audio"); options.put(mp3); checkedChoices.add("mp3");
                     checkedUrl = url;
+                    log("Format variantlarini tayyorlash: " + String.format(Locale.ROOT, "%.1f", (System.currentTimeMillis() - variantsStartedAt) / 1000.0) + " soniya");
                     JSONObject result = new JSONObject();
                     result.put("title", info.getTitle() == null ? "YouTube video" : info.getTitle());
                     result.put("duration", info.getDuration() > 0 ? String.format(Locale.ROOT, "%d:%02d", info.getDuration()/60, info.getDuration()%60) : "");
