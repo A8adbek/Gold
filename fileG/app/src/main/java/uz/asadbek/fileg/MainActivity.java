@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -41,6 +43,7 @@ public class MainActivity extends Activity {
     private volatile String checkedUrl = "";
     private volatile boolean busy = false;
     private volatile boolean engineReady = false;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -49,7 +52,7 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         web.setBackgroundColor(android.graphics.Color.rgb(16, 19, 26));
         web.getSettings().setJavaScriptEnabled(true);
-        web.getSettings().setDomStorageEnabled(false);
+        web.getSettings().setDomStorageEnabled(true);
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient());
         web.addJavascriptInterface(new Bridge(), "FileG");
@@ -58,9 +61,8 @@ public class MainActivity extends Activity {
         worker.execute(() -> {
             try {
                 YoutubeDL.getInstance().init(getApplicationContext());
-                FFmpeg.getInstance().init(getApplicationContext());
                 engineReady = true;
-                js("window.onLog('FileG tayyor. YouTube havolasini kiriting.');");
+                js("window.onLog('FileG tayyor. Havolani tekshirish mumkin.');");
             } catch (Exception e) {
                 js("window.onError(" + JSONObject.quote("Yuklash moduli ishga tushmadi: " + safeMessage(e)) + ");");
             }
@@ -101,10 +103,24 @@ public class MainActivity extends Activity {
             if (!isYoutubeUrl(url)) { js("window.onError('Faqat HTTPS YouTube yoki youtu.be havolasini kiriting.');"); return; }
             if (!engineReady) { js("window.onError('Yuklash moduli tayyor bo‘lishini kuting.');"); return; }
             if (busy) { js("window.onError('Yuklab olish davom etmoqda.');"); return; }
+            busy = true;
             js("window.onBusy(true,'Havola tekshirilmoqda…');");
+            js("window.onProgress(5,'Havola tekshirilmoqda');");
+            final long startedAt = System.currentTimeMillis();
+            final Runnable lookupProgress = new Runnable() {
+                @Override public void run() {
+                    if (!busy) return;
+                    long seconds = (System.currentTimeMillis() - startedAt) / 1000;
+                    int percent = (int) Math.min(88, 12 + seconds * 3);
+                    js("window.onProgress(" + percent + ",'YouTube ma’lumoti olinmoqda · taxminiy');");
+                    mainHandler.postDelayed(this, 700);
+                }
+            };
+            mainHandler.postDelayed(lookupProgress, 700);
             worker.execute(() -> {
                 try {
                     log("Havola tekshirilmoqda: " + url);
+                    // Init of the native FFmpeg engine is deferred until a download needs it.
                     VideoInfo info = YoutubeDL.getInstance().getInfo(url);
                     ArrayList<VideoFormat> sourceFormats = info.getFormats();
                     TreeSet<Integer> heights = new TreeSet<>(Collections.reverseOrder());
@@ -127,28 +143,35 @@ public class MainActivity extends Activity {
                     result.put("formats", options);
                     js("window.onFormats(" + JSONObject.quote(result.toString()) + ");");
                     log("Topildi: " + result.optString("title") + " · " + heights.size() + " xil video sifati va MP3");
+                    js("window.onProgress(100,'Formatlar tayyor');");
                 } catch (Exception e) {
                     checkedUrl = ""; checkedChoices.clear();
                     js("window.onError(" + JSONObject.quote("Tekshirishda xatolik: " + safeMessage(e)) + ");");
-                } finally { js("window.onBusy(false,'Tayyor');"); }
+                } finally { busy = false; mainHandler.removeCallbacks(lookupProgress); js("window.onBusy(false,'Tayyor');"); }
             });
         }
 
         @JavascriptInterface public void download(String rawUrl, String selectedFormat) {
             final String url = rawUrl == null ? "" : rawUrl.trim();
             final String format = selectedFormat == null ? "" : selectedFormat;
-            if (!isYoutubeUrl(url) || !url.equals(checkedUrl) || !checkedChoices.contains(format)) {
+            boolean validFormat = "mp3".equals(format) || format.matches("video-[0-9]{1,4}");
+            boolean hasCurrentLookup = checkedUrl.isEmpty() || url.equals(checkedUrl);
+            boolean knownFormat = checkedChoices.isEmpty() || checkedChoices.contains(format);
+            if (!isYoutubeUrl(url) || !validFormat || !hasCurrentLookup || !knownFormat) {
                 js("window.onError('Havolani qayta tekshirib, formatni qaytadan tanlang.');"); return;
             }
             if (!engineReady || busy) { js("window.onError('Hozir boshqa ish bajarilmoqda yoki modul tayyor emas.');"); return; }
             busy = true;
             js("window.onBusy(true,'Yuklab olinmoqda…');");
+            js("window.onProgress(2,'Yuklashga tayyorlanmoqda');");
             worker.execute(() -> {
                 try {
+                    js("window.onProgress(8,'Yuklashga tayyorlanmoqda');");
+                    FFmpeg.getInstance().init(getApplicationContext());
                     File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "FileG");
                     if (!folder.exists() && !folder.mkdirs()) throw new IllegalStateException("Downloads/FileG papkasini yaratib bo‘lmadi.");
                     YoutubeDLRequest request = new YoutubeDLRequest(url);
-                    request.addOption("--no-mtime"); request.addOption("--no-playlist"); request.addOption("--newline");
+                    request.addOption("--no-mtime"); request.addOption("--no-playlist"); request.addOption("--newline"); request.addOption("--continue");
                     request.addOption("-o", new File(folder, "%(title).180B [%(id)s].%(ext)s").getAbsolutePath());
                     if ("mp3".equals(format)) {
                         request.addOption("-x"); request.addOption("--audio-format", "mp3"); request.addOption("--audio-quality", "0");
@@ -158,8 +181,15 @@ public class MainActivity extends Activity {
                         request.addOption("--merge-output-format", "mp4");
                     }
                     log("Yuklab olish boshlandi. Saqlanadigan joy: Downloads/FileG");
-                    YoutubeDL.getInstance().execute(request, null, (progress, eta, line) -> { if (line != null && !line.trim().isEmpty()) log(line); return Unit.INSTANCE; });
+                    js("window.onProgress(10,'Yuklash boshlandi');");
+                    YoutubeDL.getInstance().execute(request, null, (progress, eta, line) -> {
+                        int percent = Math.max(0, Math.min(99, Math.round(progress)));
+                        js("window.onProgress(" + percent + ",'Yuklab olinmoqda');");
+                        if (line != null && !line.trim().isEmpty()) log(line);
+                        return Unit.INSTANCE;
+                    });
                     log("Yuklash tugadi. Downloads/FileG papkasidan topasiz.");
+                    js("window.onProgress(100,'Yuklash yakunlandi');");
                     js("window.onDownloadDone('Downloads/FileG');");
                 } catch (Exception e) {
                     js("window.onError(" + JSONObject.quote("Yuklashda xatolik: " + safeMessage(e)) + ");");
@@ -168,5 +198,5 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override protected void onDestroy() { if (web != null) web.destroy(); worker.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() { mainHandler.removeCallbacksAndMessages(null); if (web != null) web.destroy(); worker.shutdownNow(); super.onDestroy(); }
 }
