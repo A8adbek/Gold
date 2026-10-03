@@ -10,11 +10,6 @@
     *{box-sizing:border-box}
     body{margin:0;background:radial-gradient(ellipse at 15% 0,#1b2a35,transparent 45%),var(--bg);color:#f5f7fb;font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
     .wrap{max-width:760px;margin:auto;padding:24px 16px 36px}
-    .brand{display:flex;align-items:center;gap:12px;margin:8px 0 24px}
-    .logo{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--green);color:#111;font-weight:900;font-size:22px}
-    .brand b{font-size:21px}.brand small{display:block;color:var(--muted)}
-    h1{font-size:28px;line-height:1.15;margin:0 0 10px}
-    p{color:var(--muted);line-height:1.5;margin:0 0 22px}
     .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}
     .label{font-size:13px;color:#c1cada;margin-bottom:8px}
     input,select{width:100%;background:#10141d;color:#fff;border:1px solid #394253;border-radius:12px;padding:14px;font:inherit;outline:none}
@@ -23,9 +18,7 @@
     button:disabled{opacity:.5;cursor:wait}.secondary{background:#293343;color:#e8eef8}
     .note{font-size:12px;line-height:1.45;color:var(--muted);margin-top:12px}
     .result{display:none}.title{font-weight:700;margin-bottom:6px;overflow-wrap:anywhere}
-    .terminal{background:#080b10;border:1px solid #283142;border-radius:12px;padding:12px;height:180px;overflow:auto;color:#b8e6a3;font:12px/1.6 ui-monospace,monospace;white-space:pre-wrap;word-break:break-word}
     .termhead{display:flex;justify-content:space-between;color:#adb8cb;font-size:12px;margin-bottom:8px}
-    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#64db82;margin-right:6px}
     .error{color:#ff9b9b;margin-top:10px;font-size:13px}.status{color:var(--blue);font-size:13px;margin-top:9px}
     .progress{height:10px;border-radius:99px;background:#0e121a;overflow:hidden;margin-top:11px;border:1px solid #30394a}
     .progress>i{display:block;width:0;height:100%;background:linear-gradient(90deg,#80b5ff,#9fe870);transition:width .25s}
@@ -34,15 +27,10 @@
     .historytitle{font-weight:650;overflow-wrap:anywhere}.historymeta{color:var(--muted);font-size:12px;margin-top:5px}
     .historyitem button{margin-top:9px}.empty{font-size:13px;color:var(--muted)}
     .footer{text-align:center;font-size:12px;color:#717e91;margin-top:22px}
-    @media(max-width:420px){h1{font-size:25px}}
   </style>
 </head>
 <body>
 <main class="wrap">
-  <header class="brand"><div class="logo">G</div><div><b>FileG</b><small>Video va audio yuklagich</small></div></header>
-  <h1>Havolani kiriting,<br>formatni tanlang</h1>
-  <p>Havola va topilgan formatlar tarixda saqlanadi. Yuklangan fayl tayyor bo‘lgach, telefon pleyerida ochiladi.</p>
-
   <section class="card">
     <div class="label">YouTube havolasi</div>
     <input id="url" type="url" placeholder="https://youtu.be/..." autocomplete="url">
@@ -50,7 +38,7 @@
     <button id="refresh" class="secondary" style="display:none" onclick="checkUrl(true)">Variantlarni yangilash</button>
     <div id="lookupProgress" style="display:none">
       <div class="progress"><i id="lookupBar"></i></div>
-      <div id="lookupLine" class="progressline">Tekshiruv boshlanmoqda · 0%</div>
+      <div id="lookupLine" class="progressline">0%</div>
     </div>
     <div class="note">Faqat o‘zingizga tegishli yoki yuklab olishga ruxsatingiz bor videolar uchun foydalaning.</div>
     <div id="err" class="error"></div>
@@ -65,19 +53,13 @@
     <div id="status" class="status"></div>
     <div id="downloadProgress">
       <div class="progress"><i id="downloadBar"></i></div>
-      <div id="downloadLine" class="progressline">Tayyor</div>
+      <div id="downloadLine" class="progressline">0%</div>
     </div>
     <div id="readyToPlay" style="display:none;margin-top:12px">
       <div class="status">Yuklab olingan fayl tayyor.</div>
       <button class="secondary" onclick="playCurrentFile()">Videoni ko‘rish / audioni tinglash</button>
       <div class="note">Fayl telefoningizdagi mos pleyerda ochiladi.</div>
     </div>
-  </section>
-
-  <section class="card">
-    <div class="termhead"><span><i class="dot"></i>Terminal</span><span id="termstate">ishga tushmoqda</span></div>
-    <div id="terminal" class="terminal">FileG terminali
-&gt; Yuklash moduli ishga tushmoqda…</div>
   </section>
 
   <section class="card">
@@ -92,10 +74,10 @@
   <div class="footer">Fayllar Downloads/FileG ichiga saqlanadi</div>
 </main>
 <script>
-const $=id=>document.getElementById(id),term=$('terminal'),STORE='fileg.history.v1';
+const $=id=>document.getElementById(id),STORE='fileg.history.v1';
 let items=[],autoDownload=false,lastFileName='';
 try{items=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(items))items=[]}catch(e){items=[]}
-function write(s){term.textContent+='\n'+s;term.scrollTop=term.scrollHeight}
+function write(s){}
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(items.slice(0,30)))}catch(e){}renderHistory()}
 function current(){return items.find(x=>x.url===$('url').value.trim())}
 function saveEntry(data){const url=data.url||$('url').value.trim(),old=items.find(x=>x.url===url);if(old)Object.assign(old,data,{url,updated:Date.now()});else items.unshift(Object.assign({url,updated:Date.now()},data));items.sort((a,b)=>(b.updated||0)-(a.updated||0));items=items.slice(0,30);persist()}
@@ -122,29 +104,29 @@ function showFormats(x){
 function resume(i){
   const x=items[i];if(!x)return;showFormats(x);$('err').textContent='';
   if(x.downloadedFile){lastFileName=x.downloadedFile;$('readyToPlay').style.display='block'}
-  if(x.formats&&x.formats.length){$('status').textContent=x.status==='downloading'?'Qisman yuklangan fayl davom ettiriladi.':'Saqlangan formatlar tayyor.';$('downloadLine').textContent='Tarixdan tiklandi';if(x.status==='downloading')downloadSelected();else window.scrollTo({top:0,behavior:'smooth'})}
+  if(x.formats&&x.formats.length){$('status').textContent='';$('downloadLine').textContent='0%';if(x.status==='downloading')downloadSelected();else window.scrollTo({top:0,behavior:'smooth'})}
   else checkUrl();
 }
 function checkUrl(forceRefresh=false){
-  const url=$('url').value.trim();$('err').textContent='';$('result').style.display='none';$('lookupProgress').style.display='block';
+  const url=$('url').value.trim();$('err').textContent='';$('status').textContent='';$('result').style.display='none';$('lookupProgress').style.display='block';
   const cached=!forceRefresh&&items.find(x=>x.url===url&&x.formats&&x.formats.length&&x.title);
-  if(cached){showFormats(cached);$('status').textContent='';$('termstate').textContent='saqlangan formatlar';setLookupProgress(100,'Oldin topilgan formatlar tarixdan ko‘rsatildi');write('&gt; Saqlangan formatlar darhol ochildi. Yangilash uchun “Variantlarni yangilash”ni bosing.');return}
-  $('refresh').style.display='none';$('check').disabled=true;$('termstate').textContent='tekshirilmoqda';setLookupProgress(1,'Havolani tekshirish boshlandi');
+  if(cached){showFormats(cached);$('status').textContent='';setLookupProgress(100,'');return}
+  $('refresh').style.display='none';$('check').disabled=true;setLookupProgress(1,'');
   write('&gt; Havola tekshirilmoqda…');saveEntry({url,status:'checking'});FileG.inspect(url);
 }
 function downloadSelected(){
   const url=$('url').value.trim();if(!url||!$('format').value){$('err').textContent='Avval havolani tekshiring va format tanlang.';return}
-  $('err').textContent='';$('download').disabled=true;$('status').textContent='Yuklab olishga tayyorlanmoqda…';$('readyToPlay').style.display='none';
+  $('err').textContent='';$('download').disabled=true;$('status').textContent='';$('readyToPlay').style.display='none';
   saveEntry({url,title:$('title').textContent,formats:Array.from($('format').options).map(o=>({id:o.value,label:o.textContent})),selected:$('format').value,status:'downloading'});
   setDownloadProgress(1,'Yuklashga tayyorlanmoqda');FileG.download(url,$('format').value);
 }
 function rememberSelection(){const x=current();if(x){x.selected=$('format').value;x.updated=Date.now();persist()}}
-function setLookupProgress(n,label){$('lookupBar').style.width=Math.max(0,Math.min(100,n))+'%';$('lookupLine').textContent=label+' · '+Math.round(n)+'%'}
-function setDownloadProgress(n,label){$('downloadBar').style.width=Math.max(0,Math.min(100,n))+'%';$('downloadLine').textContent=label+' · '+Math.round(n)+'%'}
+function setLookupProgress(n,label){$('lookupBar').style.width=Math.max(0,Math.min(100,n))+'%';$('lookupLine').textContent=Math.round(n)+'%'}
+function setDownloadProgress(n,label){$('downloadBar').style.width=Math.max(0,Math.min(100,n))+'%';$('downloadLine').textContent=Math.round(n)+'%'}
 function playCurrentFile(){if(lastFileName)FileG.playFile(lastFileName)}
 window.onLog=s=>write(String(s));
-window.onError=s=>{$('err').textContent=String(s);$('status').textContent='';$('check').disabled=false;$('download').disabled=false;autoDownload=false;const x=current();if(x){x.status='ready';x.updated=Date.now();persist()}write('XATOLIK: '+s);$('termstate').textContent='xatolik'};
-window.onBusy=(busy,label)=>{$('termstate').textContent=label||(busy?'ishlayapti':'tayyor');if(!busy)$('check').disabled=false};
+window.onError=s=>{$('err').textContent=String(s);$('status').textContent='';$('check').disabled=false;$('download').disabled=false;autoDownload=false;const x=current();if(x){x.status='ready';x.updated=Date.now();persist()}};
+window.onBusy=(busy,label)=>{if(!busy)$('check').disabled=false};
 window.onLookupProgress=(n,label)=>setLookupProgress(n,label);
 window.onDownloadProgress=(n,label)=>setDownloadProgress(n,label);
 window.onFormats=raw=>{
@@ -171,7 +153,7 @@ window.onDownloadedFiles=raw=>{
   }catch(e){$('downloadedFiles').innerHTML='<div class="empty">Fayllar ro‘yxatini o‘qib bo‘lmadi.</div>'}
 };
 renderHistory();
-if(items.length){showFormats(items[0]);lastFileName=items[0].downloadedFile||'';if(lastFileName)$('readyToPlay').style.display='block';$('downloadLine').textContent='Oxirgi havola tarixdan tiklandi'}
+if(items.length){showFormats(items[0]);lastFileName=items[0].downloadedFile||'';if(lastFileName)$('readyToPlay').style.display='block'}
 FileG.listDownloads();
 </script>
 </body>
