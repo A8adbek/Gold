@@ -86,9 +86,18 @@ public class MainActivity extends Activity {
         try {
             URI uri = new URI(value.trim());
             String host = uri.getHost();
-            if (host == null || !"https".equalsIgnoreCase(uri.getScheme())) return false;
+            String scheme = uri.getScheme();
+            if (host == null || !("https".equalsIgnoreCase(scheme) || "http".equalsIgnoreCase(scheme))) return false;
             host = host.toLowerCase(Locale.ROOT);
             return host.equals("youtu.be") || host.equals("youtube.com") || host.endsWith(".youtube.com");
+        } catch (Exception e) { return false; }
+    }
+
+    private boolean isYoutubePostUrl(String value) {
+        if (!isYoutubeUrl(value)) return false;
+        try {
+            String path = new URI(value.trim()).getPath();
+            return path != null && path.matches("/post/[^/]+/?");
         } catch (Exception e) { return false; }
     }
 
@@ -105,7 +114,12 @@ public class MainActivity extends Activity {
     private class Bridge {
         @JavascriptInterface public void inspect(String rawUrl) {
             final String url = rawUrl == null ? "" : rawUrl.trim();
-            if (!isYoutubeUrl(url)) { js("window.onError('Faqat HTTPS YouTube yoki youtu.be havolasini kiriting.');"); return; }
+            if (!isYoutubeUrl(url)) { js("window.onError('YouTube yoki youtu.be havolasini kiriting.');"); return; }
+            if (isYoutubePostUrl(url)) {
+                checkedUrl = ""; checkedChoices.clear();
+                js("window.onUnsupportedPost(" + JSONObject.quote("Bu YouTube post/slayd havolasi. Slayddagi fon audiosini FileG yuklab ololmaydi.") + ");");
+                return;
+            }
             if (!engineReady) { js("window.onError('Yuklash moduli tayyor bo‘lishini kuting.');"); return; }
             if (busy) { js("window.onError('Yuklab olish davom etmoqda.');"); return; }
             busy = true;
@@ -166,6 +180,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void download(String rawUrl, String selectedFormat) {
             final String url = rawUrl == null ? "" : rawUrl.trim();
             final String format = selectedFormat == null ? "" : selectedFormat;
+            if (isYoutubePostUrl(url)) {
+                js("window.onUnsupportedPost(" + JSONObject.quote("Bu YouTube post/slayd havolasi. Slayddagi fon audiosini FileG yuklab ololmaydi.") + ");"); return;
+            }
             boolean validFormat = "mp3".equals(format) || format.matches("mp3-(320|192|128|64)") || format.matches("video-[0-9]{1,4}");
             if (!isYoutubeUrl(url) || !validFormat) {
                 js("window.onError('YouTube havolasi yoki format tanlovi noto‘g‘ri.');"); return;

@@ -47,12 +47,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag=fileg-v1.5.0
-          apk=/tmp/FileG-1.5.apk
+          tag=fileg-v1.6.0
+          apk=/tmp/FileG-1.6.apk
           cp fileG/app/build/outputs/apk/debug/app-debug.apk "$apk"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "$apk" --clobber
           else
-            gh release create "$tag" "$apk" --title "FileG 1.5" --notes "FileG purple gradient menu update."
+            gh release create "$tag" "$apk" --title "FileG 1.6" --notes "FileG now recognizes YouTube community post and slideshow links and explains that its background audio cannot be downloaded."
           fi
-

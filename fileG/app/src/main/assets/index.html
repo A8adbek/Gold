@@ -180,9 +180,10 @@ function renderHistory(){
   items.forEach((x,i)=>{
     const card=document.createElement('div');card.className='historyitem';
     const title=document.createElement('div');title.className='historytitle';title.textContent=x.title||x.url;
-    const meta=document.createElement('div');meta.className='historymeta';meta.textContent=(x.formats&&x.formats.length?x.formats.length+' ta format':'Tekshirish kutilmoqda')+' · '+(x.status==='done'?'yuklandi':x.status==='downloading'?'davom ettirish mumkin':'saqlangan');
-    const resumeBtn=document.createElement('button');resumeBtn.textContent='Davom ettirish';resumeBtn.onclick=()=>resume(i);
-    card.append(title,meta,resumeBtn);
+    const isUnsupportedPost=x.status==='unsupported-post';
+    const meta=document.createElement('div');meta.className='historymeta';meta.textContent=isUnsupportedPost?'Slayd posti · audiosini yuklab bo‘lmaydi':(x.formats&&x.formats.length?x.formats.length+' ta format':'Tekshirish kutilmoqda')+' · '+(x.status==='done'?'yuklandi':x.status==='downloading'?'davom ettirish mumkin':'saqlangan');
+    card.append(title,meta);
+    if(!isUnsupportedPost){const resumeBtn=document.createElement('button');resumeBtn.textContent='Davom ettirish';resumeBtn.onclick=()=>resume(i);card.append(resumeBtn)}
     if(x.downloadedFile){const play=document.createElement('button');play.textContent='Yuklangan faylni ochish';play.onclick=()=>FileG.playFile(x.downloadedFile);card.append(play)}
     root.append(card);
   });
@@ -269,6 +270,12 @@ function setDownloadProgress(n){$('downloadBar').style.width=Math.max(0,Math.min
 function playCurrentFile(){if(lastFileName)FileG.playFile(lastFileName)}
 window.onLog=s=>write(String(s));
 window.onError=s=>{$('err').textContent=String(s);$('status').textContent='';$('check').disabled=false;$('download').disabled=false;autoDownload=false;const x=current();if(x){x.status='ready';x.updated=Date.now();persist()}};
+window.onUnsupportedPost=message=>{
+  const text=String(message||'Bu YouTube post/slayd havolasi. Slayddagi fon audiosini FileG yuklab ololmaydi.');
+  $('result').style.display='none';$('lookupProgress').style.display='none';$('downloadProgress').style.display='none';
+  $('err').textContent=text;$('status').textContent='';$('check').disabled=false;$('download').disabled=false;autoDownload=false;selectedFormat='';
+  const x=current();if(x){x.title='YouTube post/slayd';x.formats=[];x.status='unsupported-post';x.error=text;x.updated=Date.now();persist()}
+};
 window.onBusy=(busy,label)=>{if(!busy)$('check').disabled=false};
 window.onLookupProgress=(n,label)=>setLookupProgress(n);
 window.onDownloadProgress=(n,label)=>setDownloadProgress(n);
