@@ -3,157 +3,300 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#10131a">
+  <meta name="theme-color" content="#592cff">
   <title>FileG</title>
   <style>
-    :root{color-scheme:dark;--bg:#10131a;--panel:#191e29;--line:#2b3342;--muted:#9ba6b9;--green:#9fe870;--blue:#80b5ff}
+    :root{color-scheme:light;--purple:#672cff;--blue:#4054e8;--ink:#20243c;--muted:#79809a;--panel:#fff;--line:#e8e9f1;--bg:#f6f7fc}
     *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(ellipse at 15% 0,#1b2a35,transparent 45%),var(--bg);color:#f5f7fb;font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
-    .wrap{max-width:760px;margin:auto;padding:24px 16px 36px}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}
-    .label{font-size:13px;color:#c1cada;margin-bottom:8px}
-    input,select{width:100%;background:#10141d;color:#fff;border:1px solid #394253;border-radius:12px;padding:14px;font:inherit;outline:none}
-    input:focus,select:focus{border-color:var(--blue)}
-    button{width:100%;border:0;border-radius:12px;padding:14px 16px;margin-top:12px;font:700 16px system-ui;cursor:pointer;background:var(--green);color:#10160e}
-    button:disabled{opacity:.5;cursor:wait}.secondary{background:#293343;color:#e8eef8}
-    .note{font-size:12px;line-height:1.45;color:var(--muted);margin-top:12px}
-    .result{display:none}.title{font-weight:700;margin-bottom:6px;overflow-wrap:anywhere}
-    .termhead{display:flex;justify-content:space-between;color:#adb8cb;font-size:12px;margin-bottom:8px}
-    .error{color:#ff9b9b;margin-top:10px;font-size:13px}.status{color:var(--blue);font-size:13px;margin-top:9px}
-    .progress{height:10px;border-radius:99px;background:#0e121a;overflow:hidden;margin-top:11px;border:1px solid #30394a}
-    .progress>i{display:block;width:0;height:100%;background:linear-gradient(90deg,#80b5ff,#9fe870);transition:width .25s}
-    .progressline{font-size:12px;color:#b9c8dd;margin-top:6px}
-    .history{display:grid;gap:10px}.historyitem{border:1px solid var(--line);background:#121720;border-radius:13px;padding:12px}
-    .historytitle{font-weight:650;overflow-wrap:anywhere}.historymeta{color:var(--muted);font-size:12px;margin-top:5px}
-    .historyitem button{margin-top:9px}.empty{font-size:13px;color:var(--muted)}
-    .footer{text-align:center;font-size:12px;color:#717e91;margin-top:22px}
+    body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .app{max-width:560px;min-height:100vh;margin:auto;background:var(--bg);padding-bottom:82px}
+    .hero{position:relative;overflow:hidden;padding:24px 20px 48px;color:white;border-radius:0 0 30px 30px;background:linear-gradient(132deg,#8b35ff 0%,#592cff 48%,#3655df 100%);box-shadow:0 16px 36px #4931c42e}
+    .hero:before,.hero:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+    .hero:before{width:340px;height:340px;top:-210px;right:-110px;background:#ffffff12}
+    .hero:after{width:230px;height:230px;bottom:-180px;left:-100px;background:#b69aff36}
+    .hero-top,.features,.linkbox,.lookup-progress,.error{position:relative;z-index:1}
+    .hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}
+    .playmark{display:grid;place-items:center;width:52px;height:52px;border-radius:19px;background:#ffffff32;box-shadow:0 6px 18px #29117b22;font-size:25px}
+    .features{display:flex;justify-content:space-between;gap:10px;margin:0 0 24px}
+    .feature{display:flex;align-items:center;gap:8px;min-width:0}
+    .feature-icon{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:50%;background:#ffffff2b;font-size:18px}
+    .feature-text{font-size:12px;font-weight:700;line-height:1.15}
+    .feature-text small{display:block;font-size:10px;font-weight:500;opacity:.78;margin-top:4px}
+    .linkbox{display:flex;align-items:center;gap:9px;padding:8px 9px 8px 15px;border-radius:22px;background:#fff;box-shadow:0 12px 30px #28136c25}
+    .link-icon{color:#6e7390;font-size:20px}
+    #url{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#252943;font-size:14px;padding:10px 0}
+    #url::placeholder{color:#8990a7}
+    .icon-button{display:grid;place-items:center;flex:0 0 54px;height:54px;border:0;border-radius:18px;background:linear-gradient(135deg,#8b35ff,#5b2bff);color:white;font-size:25px;box-shadow:0 6px 15px #672cff48}
+    .icon-button:disabled{opacity:.55}
+    .lookup-progress{display:none;margin:14px 5px 0}
+    .progress{height:8px;border-radius:99px;background:#ffffff4a;overflow:hidden}
+    .progress>i{display:block;width:0;height:100%;border-radius:inherit;background:#fff;transition:width .25s}
+    .progressline{display:flex;justify-content:flex-end;margin-top:6px;font-size:12px;font-weight:700;color:#fff}
+    .error{min-height:0;margin-top:10px;color:#fff0f0;font-size:12px}
+    .content{padding:18px 16px 20px}
+    .mode-switch{display:flex;gap:4px;padding:5px;border-radius:28px;background:#eceef6;margin-bottom:16px}
+    .mode-switch button{display:flex;justify-content:center;align-items:center;gap:9px;width:50%;border:0;border-radius:24px;padding:14px 8px;background:transparent;color:#4d536e;font-weight:700}
+    .mode-switch button.active{color:#fff;background:linear-gradient(105deg,#542bff,#8d38ff);box-shadow:0 5px 13px #6d36ff45}
+    .card{border:1px solid #f0f0f6;border-radius:24px;background:var(--panel);padding:18px;margin:0 0 14px;box-shadow:0 8px 22px #303c6810}
+    .result{display:none}
+    .video-title{font-weight:750;font-size:16px;line-height:1.3;overflow-wrap:anywhere}
+    .video-duration{margin-top:5px;color:var(--muted);font-size:12px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 12px;font-weight:750;font-size:15px}
+    .format-chip{color:#5d42e8;font-size:12px;font-weight:700}
+    .quality-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+    .quality-option{min-height:76px;border:1px solid var(--line);border-radius:17px;background:#fff;color:#262b43;padding:9px 5px;text-align:center}
+    .quality-option strong{display:block;font-size:15px;line-height:1.2}
+    .quality-option small{display:block;margin-top:5px;color:var(--muted);font-size:11px;line-height:1.1}
+    .quality-option.selected{border:1.5px solid #7144ff;background:#f8f5ff;color:#6136ed;box-shadow:0 0 0 2px #7444ff12}
+    .empty-quality{grid-column:1/-1;color:var(--muted);font-size:12px;padding:8px 2px}
+    .download-card{display:flex;align-items:center;gap:12px;margin-top:16px;padding:13px;border-radius:18px;background:#fafaff;border:1px solid #f0eff8}
+    .download-art{display:grid;place-items:center;flex:0 0 72px;height:66px;border-radius:16px;color:#fff;font-size:25px;background:linear-gradient(135deg,#9e76ff,#4357eb)}
+    .download-info{min-width:0;flex:1}
+    .download-info .video-title{font-size:14px}
+    .download-info .video-duration{font-size:11px}
+    #download{width:100%;margin-top:14px;border:0;border-radius:15px;padding:15px;background:linear-gradient(105deg,#622dff,#8b36ff);color:#fff;font-weight:750;box-shadow:0 7px 16px #672cff32}
+    #download:disabled{opacity:.55}
+    #downloadProgress{display:none;margin-top:12px}
+    #downloadProgress .progress{background:#ececf5}
+    #downloadProgress .progress>i{background:linear-gradient(90deg,#7250ff,#9a62ff)}
+    #downloadProgress .progressline{color:#6338ed}
+    .status{color:#6439ed;font-size:12px;margin-top:9px}
+    .ready{display:none;margin-top:12px}
+    .ready button{width:100%;border:0;border-radius:14px;padding:13px;background:#f2edff;color:#5b34dd;font-weight:700}
+    .note{font-size:11px;color:var(--muted);margin-top:7px;text-align:center}
+    .screen{display:none;padding:18px 16px 20px}
+    .screen.active{display:block}
+    .screen-heading{font-weight:750;font-size:18px;margin:3px 0 14px}
+    .history{display:grid;gap:10px}
+    .historyitem{border:1px solid var(--line);background:#fff;border-radius:17px;padding:13px;box-shadow:0 6px 16px #303c680c}
+    .historytitle{font-weight:700;overflow-wrap:anywhere}
+    .historymeta{color:var(--muted);font-size:11px;margin-top:5px}
+    .historyitem button{width:100%;margin-top:10px;border:0;border-radius:12px;padding:11px;background:#f1edff;color:#5e38e4;font-weight:700}
+    .empty{font-size:13px;color:var(--muted);padding:15px 3px}
+    .bottom-nav{position:fixed;z-index:5;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,100%);display:flex;justify-content:space-around;padding:9px 8px calc(9px + env(safe-area-inset-bottom));border-top:1px solid #ececf4;background:#ffffffed;backdrop-filter:blur(14px)}
+    .nav-item{display:grid;justify-items:center;gap:3px;min-width:70px;border:0;background:transparent;color:#868ba0;font-size:10px}
+    .nav-item span:first-child{font-size:20px;line-height:1.1}
+    .nav-item.active{color:#6635ff;font-weight:750}
+    @media(max-width:370px){.content,.screen{padding-left:12px;padding-right:12px}.quality-grid{gap:6px}.quality-option{min-height:70px}.feature-text{font-size:11px}.feature-icon{flex-basis:32px;height:32px}}
   </style>
 </head>
 <body>
-<main class="wrap">
-  <section class="card">
-    <div class="label">YouTube havolasi</div>
-    <input id="url" type="url" placeholder="https://youtu.be/..." autocomplete="url">
-    <button id="check" onclick="checkUrl()">Formatlarni tekshirish</button>
-    <button id="refresh" class="secondary" style="display:none" onclick="checkUrl(true)">Variantlarni yangilash</button>
-    <div id="lookupProgress" style="display:none">
-      <div class="progress"><i id="lookupBar"></i></div>
-      <div id="lookupLine" class="progressline">0%</div>
-    </div>
-    <div class="note">Faqat o‘zingizga tegishli yoki yuklab olishga ruxsatingiz bor videolar uchun foydalaning.</div>
-    <div id="err" class="error"></div>
+<div class="app">
+  <section id="homeScreen">
+    <header class="hero">
+      <div class="hero-top"><div class="playmark" aria-hidden="true">▶</div></div>
+      <div class="features">
+        <div class="feature"><span class="feature-icon">⚡</span><span class="feature-text">Tez<small>Yuklash</small></span></div>
+        <div class="feature"><span class="feature-icon">✓</span><span class="feature-text">HD sifat<small>4K gacha</small></span></div>
+        <div class="feature"><span class="feature-icon">♫</span><span class="feature-text">Audio<small>MP3 format</small></span></div>
+      </div>
+      <div class="linkbox">
+        <span class="link-icon" aria-hidden="true">🔗</span>
+        <input id="url" type="url" placeholder="YouTube havolasini joylang" autocomplete="url">
+        <button id="check" class="icon-button" aria-label="Havolani tekshirish" onclick="checkUrl()">↓</button>
+      </div>
+      <div id="lookupProgress" class="lookup-progress">
+        <div class="progress"><i id="lookupBar"></i></div>
+        <div id="lookupLine" class="progressline">0%</div>
+      </div>
+      <div id="err" class="error"></div>
+    </header>
+
+    <main class="content">
+      <div class="mode-switch">
+        <button id="videoTab" class="active" onclick="setMode('video')">▣ <span>Video</span></button>
+        <button id="audioTab" onclick="setMode('audio')">♫ <span>Audio</span></button>
+      </div>
+
+      <section id="result" class="card result">
+        <div id="title" class="video-title"></div>
+        <div id="duration" class="video-duration"></div>
+
+        <div id="videoPanel" style="margin-top:17px">
+          <div class="section-head"><span>Video formati</span><span class="format-chip">MP4</span></div>
+          <div id="videoOptions" class="quality-grid"></div>
+        </div>
+
+        <div id="audioPanel" style="display:none;margin-top:17px">
+          <div class="section-head"><span>Audio formati</span><span class="format-chip">MP3</span></div>
+          <div id="audioOptions" class="quality-grid"></div>
+        </div>
+
+        <div class="download-card">
+          <div class="download-art" aria-hidden="true">▶</div>
+          <div class="download-info">
+            <div id="downloadTitle" class="video-title"></div>
+            <div id="downloadMeta" class="video-duration"></div>
+          </div>
+        </div>
+        <button id="download" onclick="downloadSelected()">Yuklab olish</button>
+        <div id="status" class="status"></div>
+        <div id="downloadProgress">
+          <div class="progress"><i id="downloadBar"></i></div>
+          <div id="downloadLine" class="progressline">0%</div>
+        </div>
+        <div id="readyToPlay" class="ready">
+          <button onclick="playCurrentFile()">Videoni ko‘rish / audioni tinglash</button>
+          <div class="note">Yuklangan fayl telefon pleyerida ochiladi</div>
+        </div>
+      </section>
+    </main>
   </section>
 
-  <section id="result" class="card result">
-    <div id="title" class="title"></div>
-    <div id="duration" class="note"></div>
-    <div class="label" style="margin-top:16px">Mavjud format</div>
-    <select id="format" onchange="rememberSelection()"></select>
-    <button id="download" onclick="downloadSelected()">Tanlangan formatni yuklab olish</button>
-    <div id="status" class="status"></div>
-    <div id="downloadProgress">
-      <div class="progress"><i id="downloadBar"></i></div>
-      <div id="downloadLine" class="progressline">0%</div>
-    </div>
-    <div id="readyToPlay" style="display:none;margin-top:12px">
-      <div class="status">Yuklab olingan fayl tayyor.</div>
-      <button class="secondary" onclick="playCurrentFile()">Videoni ko‘rish / audioni tinglash</button>
-      <div class="note">Fayl telefoningizdagi mos pleyerda ochiladi.</div>
-    </div>
-  </section>
-
-  <section class="card">
-    <div class="termhead"><b>Yuklab olingan fayllar</b><span id="downloadedCount">0 ta</span></div>
+  <section id="downloadsScreen" class="screen">
+    <div class="screen-heading">Yuklab olinganlar</div>
     <div id="downloadedFiles" class="history"><div class="empty">Hali fayl yuklanmagan.</div></div>
   </section>
 
-  <section class="card">
-    <div class="termhead"><b>Havolalar tarixi</b><span id="historycount">0 ta</span></div>
+  <section id="historyScreen" class="screen">
+    <div class="screen-heading">Havolalar tarixi</div>
     <div id="history" class="history"><div class="empty">Tekshirilgan havolalar shu yerda saqlanadi.</div></div>
   </section>
-  <div class="footer">Fayllar Downloads/FileG ichiga saqlanadi</div>
-</main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-screen="home" onclick="showScreen('home')"><span>⌂</span><span>Bosh sahifa</span></button>
+    <button class="nav-item" data-screen="downloads" onclick="showScreen('downloads')"><span>▱</span><span>Yuklamalar</span></button>
+    <button class="nav-item" data-screen="history" onclick="showScreen('history')"><span>◷</span><span>Tarix</span></button>
+  </nav>
+</div>
 <script>
 const $=id=>document.getElementById(id),STORE='fileg.history.v1';
-let items=[],autoDownload=false,lastFileName='';
+let items=[],autoDownload=false,lastFileName='',selectedFormat='',activeMode='video';
 try{items=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(items))items=[]}catch(e){items=[]}
 function write(s){}
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(items.slice(0,30)))}catch(e){}renderHistory()}
 function current(){return items.find(x=>x.url===$('url').value.trim())}
 function saveEntry(data){const url=data.url||$('url').value.trim(),old=items.find(x=>x.url===url);if(old)Object.assign(old,data,{url,updated:Date.now()});else items.unshift(Object.assign({url,updated:Date.now()},data));items.sort((a,b)=>(b.updated||0)-(a.updated||0));items=items.slice(0,30);persist()}
+function showScreen(name){
+  $('homeScreen').style.display=name==='home'?'block':'none';
+  $('downloadsScreen').classList.toggle('active',name==='downloads');
+  $('historyScreen').classList.toggle('active',name==='history');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.screen===name));
+}
 function renderHistory(){
-  const root=$('history');root.innerHTML='';$('historycount').textContent=items.length+' ta';
-  if(!items.length){root.innerHTML='<div class="empty">Tekshirilgan havolalar shu yerda saqlanadi.</div>';return}
+  const root=$('history');root.innerHTML='';if(!items.length){root.innerHTML='<div class="empty">Tekshirilgan havolalar shu yerda saqlanadi.</div>';return}
   items.forEach((x,i)=>{
     const card=document.createElement('div');card.className='historyitem';
     const title=document.createElement('div');title.className='historytitle';title.textContent=x.title||x.url;
-    const meta=document.createElement('div');meta.className='historymeta';meta.textContent=(x.formats&&x.formats.length?x.formats.length+' ta format':'Tekshirish kutilmoqda')+' · '+(x.status==='done'?'yuklandi':x.status==='downloading'?'yuklash uzilgan bo‘lishi mumkin':'saqlangan');
-    const resumeBtn=document.createElement('button');resumeBtn.className='secondary';resumeBtn.textContent='Davom ettirish';resumeBtn.onclick=()=>resume(i);
+    const meta=document.createElement('div');meta.className='historymeta';meta.textContent=(x.formats&&x.formats.length?x.formats.length+' ta format':'Tekshirish kutilmoqda')+' · '+(x.status==='done'?'yuklandi':x.status==='downloading'?'davom ettirish mumkin':'saqlangan');
+    const resumeBtn=document.createElement('button');resumeBtn.textContent='Davom ettirish';resumeBtn.onclick=()=>resume(i);
     card.append(title,meta,resumeBtn);
-    if(x.downloadedFile){const play=document.createElement('button');play.className='secondary';play.textContent='Yuklangan faylni ko‘rish / tinglash';play.onclick=()=>FileG.playFile(x.downloadedFile);card.append(play)}
+    if(x.downloadedFile){const play=document.createElement('button');play.textContent='Yuklangan faylni ochish';play.onclick=()=>FileG.playFile(x.downloadedFile);card.append(play)}
     root.append(card);
   });
 }
+function makeOption(id,title,subtitle,group){
+  const b=document.createElement('button');b.type='button';b.className='quality-option';b.dataset.format=id;
+  const strong=document.createElement('strong');strong.textContent=title;
+  const small=document.createElement('small');small.textContent=subtitle;
+  b.append(strong,small);b.onclick=()=>selectFormat(id,group);return b;
+}
+function selectFormat(id,group){
+  selectedFormat=id;activeMode=group;updateModeView();
+  document.querySelectorAll('.quality-option').forEach(b=>b.classList.toggle('selected',b.dataset.format===id));
+  updateDownloadCard();rememberSelection();
+}
+function updateModeView(){
+  $('videoTab').classList.toggle('active',activeMode==='video');$('audioTab').classList.toggle('active',activeMode==='audio');
+  $('videoPanel').style.display=activeMode==='video'?'block':'none';$('audioPanel').style.display=activeMode==='audio'?'block':'none';
+  updateDownloadCard();
+}
+function setMode(mode){
+  activeMode=mode;
+  const options=mode==='video'?$('videoOptions').querySelectorAll('.quality-option'):$('audioOptions').querySelectorAll('.quality-option');
+  if(options.length&&!Array.from(options).some(b=>b.dataset.format===selectedFormat))selectedFormat=options[0].dataset.format;
+  updateModeView();document.querySelectorAll('.quality-option').forEach(b=>b.classList.toggle('selected',b.dataset.format===selectedFormat));
+}
+function updateDownloadCard(){
+  const title=$('title').textContent||'Video yoki audio';
+  $('downloadTitle').textContent=title;
+  const option=Array.from(document.querySelectorAll('.quality-option')).find(b=>b.dataset.format===selectedFormat);
+  const label=option?option.querySelector('strong').textContent:'';
+  $('downloadMeta').textContent=(activeMode==='audio'?'MP3':'MP4')+(label?' · '+label:'');
+  $('download').textContent=activeMode==='audio'?'MP3 yuklab olish':'Videoni yuklab olish';
+}
+function drawAudioOptions(saved){
+  const root=$('audioOptions');root.innerHTML='';
+  const choices=[['mp3-320','320 kb/s','Yuqori sifat'],['mp3-192','192 kb/s','Muvozanatli'],['mp3-128','128 kb/s','Standart'],['mp3-64','64 kb/s','Kam hajm']];
+  choices.forEach(c=>root.appendChild(makeOption(c[0],c[1],c[2],'audio')));
+}
 function showFormats(x){
   $('url').value=x.url;$('title').textContent=x.title||'YouTube video';$('duration').textContent=x.duration?'Davomiyligi: '+x.duration:'';
-  $('format').innerHTML='';(x.formats||[]).forEach(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.label;$('format').appendChild(o)});
-  if(x.selected&&Array.from($('format').options).some(o=>o.value===x.selected))$('format').value=x.selected;
-  $('result').style.display=x.formats&&x.formats.length?'block':'none';
-  $('refresh').style.display=x.formats&&x.formats.length?'block':'none';
+  const videos=(x.formats||[]).filter(f=>f.id!=='mp3'&&!String(f.id).startsWith('mp3-'));
+  const root=$('videoOptions');root.innerHTML='';
+  videos.forEach(f=>{
+    const h=Number(String(f.id).replace('video-',''))||0;
+    const main=h>=2160?'4K':h>=1080?'Full HD':h>=720?'HD':'SD';
+    root.appendChild(makeOption(f.id,String(h||f.label)+'p',main,'video'));
+  });
+  if(!videos.length)root.innerHTML='<div class="empty-quality">Video formatlari topilmadi.</div>';
+  drawAudioOptions();
+  selectedFormat=x.selected||'';
+  if(selectedFormat==='mp3')selectedFormat='mp3-320';
+  if(selectedFormat.startsWith('mp3-'))activeMode='audio';
+  else activeMode='video';
+  const selectedExists=Array.from(document.querySelectorAll('.quality-option')).some(b=>b.dataset.format===selectedFormat);
+  if(!selectedExists)selectedFormat=activeMode==='audio'?'mp3-320':(videos[0]?videos[0].id:'mp3-320');
+  if(!videos.length)activeMode='audio';
+  document.querySelectorAll('.quality-option').forEach(b=>b.classList.toggle('selected',b.dataset.format===selectedFormat));
+  $('result').style.display='block';$('readyToPlay').style.display=x.downloadedFile?'block':'none';$('status').textContent='';
+  $('downloadProgress').style.display='none';$('downloadBar').style.width='0%';$('downloadLine').textContent='0%';
+  updateModeView();
 }
 function resume(i){
-  const x=items[i];if(!x)return;showFormats(x);$('err').textContent='';
+  const x=items[i];if(!x)return;showFormats(x);showScreen('home');$('err').textContent='';
   if(x.downloadedFile){lastFileName=x.downloadedFile;$('readyToPlay').style.display='block'}
-  if(x.formats&&x.formats.length){$('status').textContent='';$('downloadLine').textContent='0%';if(x.status==='downloading')downloadSelected();else window.scrollTo({top:0,behavior:'smooth'})}
-  else checkUrl();
+  if(x.formats&&x.formats.length&&x.status==='downloading')downloadSelected();
 }
 function checkUrl(forceRefresh=false){
-  const url=$('url').value.trim();$('err').textContent='';$('status').textContent='';$('result').style.display='none';$('lookupProgress').style.display='block';
+  const url=$('url').value.trim();$('err').textContent='';$('status').textContent='';$('result').style.display='none';$('lookupProgress').style.display='block';$('lookupBar').style.width='1%';$('lookupLine').textContent='1%';
   const cached=!forceRefresh&&items.find(x=>x.url===url&&x.formats&&x.formats.length&&x.title);
-  if(cached){showFormats(cached);$('status').textContent='';setLookupProgress(100,'');return}
-  $('refresh').style.display='none';$('check').disabled=true;setLookupProgress(1,'');
-  write('&gt; Havola tekshirilmoqda…');saveEntry({url,status:'checking'});FileG.inspect(url);
+  if(cached){showFormats(cached);setLookupProgress(100);return}
+  $('check').disabled=true;setLookupProgress(1);saveEntry({url,status:'checking'});FileG.inspect(url);
 }
 function downloadSelected(){
-  const url=$('url').value.trim();if(!url||!$('format').value){$('err').textContent='Avval havolani tekshiring va format tanlang.';return}
+  const url=$('url').value.trim();if(!url||!selectedFormat){$('err').textContent='Avval havolani tekshiring va format tanlang.';return}
   $('err').textContent='';$('download').disabled=true;$('status').textContent='';$('readyToPlay').style.display='none';
-  saveEntry({url,title:$('title').textContent,formats:Array.from($('format').options).map(o=>({id:o.value,label:o.textContent})),selected:$('format').value,status:'downloading'});
-  setDownloadProgress(1,'Yuklashga tayyorlanmoqda');FileG.download(url,$('format').value);
+  const storedFormats=Array.from(document.querySelectorAll('.quality-option')).map(b=>({id:b.dataset.format,label:b.querySelector('strong').textContent+' '+b.querySelector('small').textContent}));
+  saveEntry({url,title:$('title').textContent,formats:storedFormats,selected:selectedFormat,status:'downloading'});
+  $('downloadProgress').style.display='block';setDownloadProgress(1);FileG.download(url,selectedFormat);
 }
-function rememberSelection(){const x=current();if(x){x.selected=$('format').value;x.updated=Date.now();persist()}}
-function setLookupProgress(n,label){$('lookupBar').style.width=Math.max(0,Math.min(100,n))+'%';$('lookupLine').textContent=Math.round(n)+'%'}
-function setDownloadProgress(n,label){$('downloadBar').style.width=Math.max(0,Math.min(100,n))+'%';$('downloadLine').textContent=Math.round(n)+'%'}
+function rememberSelection(){const x=current();if(x){x.selected=selectedFormat;x.updated=Date.now();persist()}}
+function setLookupProgress(n){$('lookupBar').style.width=Math.max(0,Math.min(100,n))+'%';$('lookupLine').textContent=Math.round(n)+'%'}
+function setDownloadProgress(n){$('downloadBar').style.width=Math.max(0,Math.min(100,n))+'%';$('downloadLine').textContent=Math.round(n)+'%'}
 function playCurrentFile(){if(lastFileName)FileG.playFile(lastFileName)}
 window.onLog=s=>write(String(s));
 window.onError=s=>{$('err').textContent=String(s);$('status').textContent='';$('check').disabled=false;$('download').disabled=false;autoDownload=false;const x=current();if(x){x.status='ready';x.updated=Date.now();persist()}};
 window.onBusy=(busy,label)=>{if(!busy)$('check').disabled=false};
-window.onLookupProgress=(n,label)=>setLookupProgress(n,label);
-window.onDownloadProgress=(n,label)=>setDownloadProgress(n,label);
+window.onLookupProgress=(n,label)=>setLookupProgress(n);
+window.onDownloadProgress=(n,label)=>setDownloadProgress(n);
 window.onFormats=raw=>{
-  try{const data=JSON.parse(raw),url=$('url').value.trim(),x={url,title:data.title,duration:data.duration,formats:data.formats,status:'ready',updated:Date.now()};saveEntry(x);showFormats(x);$('status').textContent='';$('lookupProgress').style.display='block';write('&gt; '+data.formats.length+' format topildi.');if(autoDownload){autoDownload=false;setTimeout(downloadSelected,100)}}
+  try{const data=JSON.parse(raw),url=$('url').value.trim(),x={url,title:data.title,duration:data.duration,formats:data.formats,status:'ready',updated:Date.now()};saveEntry(x);showFormats(x);setLookupProgress(100);$('lookupProgress').style.display='block';if(autoDownload){autoDownload=false;setTimeout(downloadSelected,100)}}
   catch(e){window.onError('Formatlar ro‘yxatini o‘qib bo‘lmadi.')}
 };
 window.onDownloadDone=(fileName,mime)=>{
   lastFileName=String(fileName||'');$('download').disabled=false;
   $('status').textContent=fileName?'Yuklandi: Downloads/FileG/'+fileName:'Yuklash tugadi. Fayllar ro‘yxatini tekshiring.';
-  setDownloadProgress(100,'Yuklash tugadi');if(fileName)$('readyToPlay').style.display='block';
+  setDownloadProgress(100);if(fileName)$('readyToPlay').style.display='block';
   const x=current();if(x){x.status='done';x.downloadedFile=fileName||'';x.updated=Date.now();persist()}FileG.listDownloads();
 };
 window.onDownloadedFiles=raw=>{
   try{
-    const files=JSON.parse(raw),root=$('downloadedFiles');root.innerHTML='';$('downloadedCount').textContent=files.length+' ta';
+    const files=JSON.parse(raw),root=$('downloadedFiles');root.innerHTML='';
     if(!files.length){root.innerHTML='<div class="empty">Hali fayl yuklanmagan.</div>';return}
     files.forEach(f=>{
       const card=document.createElement('div');card.className='historyitem';
       const title=document.createElement('div');title.className='historytitle';title.textContent=f.name;
       const meta=document.createElement('div');meta.className='historymeta';meta.textContent=f.mime+' · '+(f.bytes<1048576?(f.bytes/1024).toFixed(1)+' KB':(f.bytes/1048576).toFixed(1)+' MB');
-      const button=document.createElement('button');button.className='secondary';button.textContent=f.mime.startsWith('audio/')?'Audioni tinglash':'Videoni ko‘rish';button.onclick=()=>FileG.playFile(f.name);
+      const button=document.createElement('button');button.textContent=f.mime.startsWith('audio/')?'Audioni tinglash':'Videoni ko‘rish';button.onclick=()=>FileG.playFile(f.name);
       card.append(title,meta,button);root.append(card);
     });
   }catch(e){$('downloadedFiles').innerHTML='<div class="empty">Fayllar ro‘yxatini o‘qib bo‘lmadi.</div>'}
 };
-renderHistory();
-if(items.length){showFormats(items[0]);lastFileName=items[0].downloadedFile||'';if(lastFileName)$('readyToPlay').style.display='block'}
+renderHistory();drawAudioOptions();
+if(items.length){const first=items[0];if(first.formats&&first.formats.length)showFormats(first);lastFileName=first.downloadedFile||'';if(lastFileName)$('readyToPlay').style.display='block';}
 FileG.listDownloads();
 </script>
 </body>

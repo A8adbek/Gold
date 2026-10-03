@@ -6,7 +6,7 @@ on:
       - '.github/workflows/fileg-apk.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,3 +43,16 @@ jobs:
           name: FileG-APK-part-3
           path: /tmp/fileg-apk-part-ac
           if-no-files-found: error
+      - name: Publish APK for direct Chrome download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=fileg-v1.5.0
+          apk=/tmp/FileG-1.5.apk
+          cp fileG/app/build/outputs/apk/debug/app-debug.apk "$apk"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$apk" --clobber
+          else
+            gh release create "$tag" "$apk" --title "FileG 1.5" --notes "FileG purple gradient menu update."
+          fi
+

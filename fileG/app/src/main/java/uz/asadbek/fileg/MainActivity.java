@@ -166,7 +166,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void download(String rawUrl, String selectedFormat) {
             final String url = rawUrl == null ? "" : rawUrl.trim();
             final String format = selectedFormat == null ? "" : selectedFormat;
-            boolean validFormat = "mp3".equals(format) || format.matches("video-[0-9]{1,4}");
+            boolean validFormat = "mp3".equals(format) || format.matches("mp3-(320|192|128|64)") || format.matches("video-[0-9]{1,4}");
             if (!isYoutubeUrl(url) || !validFormat) {
                 js("window.onError('YouTube havolasi yoki format tanlovi noto‘g‘ri.');"); return;
             }
@@ -183,8 +183,9 @@ public class MainActivity extends Activity {
                     YoutubeDLRequest request = new YoutubeDLRequest(url);
                     request.addOption("--no-mtime"); request.addOption("--no-playlist"); request.addOption("--newline"); request.addOption("--continue");
                     request.addOption("-o", new File(folder, "%(title).180B [%(id)s].%(ext)s").getAbsolutePath());
-                    if ("mp3".equals(format)) {
-                        request.addOption("-x"); request.addOption("--audio-format", "mp3"); request.addOption("--audio-quality", "0");
+                    if (format.startsWith("mp3")) {
+                        String audioQuality = "mp3".equals(format) ? "0" : format.substring(4) + "K";
+                        request.addOption("-x"); request.addOption("--audio-format", "mp3"); request.addOption("--audio-quality", audioQuality);
                     } else {
                         int height = Integer.parseInt(format.substring("video-".length()));
                         request.addOption("-f", "bestvideo[height<=" + height + "]+bestaudio/best[height<=" + height + "]");
