@@ -26,3 +26,20 @@ jobs:
           name: FileG-APK
           path: fileG/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+      - name: Split APK into transfer-sized parts
+        run: split -b 24m fileG/app/build/outputs/apk/debug/app-debug.apk /tmp/fileg-apk-part-
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FileG-APK-part-1
+          path: /tmp/fileg-apk-part-aa
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FileG-APK-part-2
+          path: /tmp/fileg-apk-part-ab
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FileG-APK-part-3
+          path: /tmp/fileg-apk-part-ac
+          if-no-files-found: error
