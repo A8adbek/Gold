@@ -35,6 +35,7 @@ $('finish').onclick=()=>{if(mode!=='area'||vertices.length<3)return notify('Hudu
 $('reset').onclick=()=>{clearSelection();mode='point';$('hint').textContent='Xaritadan yangi joy tanlang.'};
 $('create').onclick=()=>{if(!point)return notify('Avval xaritada nuqta yoki tugallangan hudud tanlang.');$('formdialog').showModal()};
 function cleanup(){urls.forEach(u=>URL.revokeObjectURL(u));urls=[];$('preview').replaceChildren()}
+$('closeinfo').onclick=()=>$('info').close();
 $('cancel').onclick=()=>$('formdialog').close();
 $('photos').onchange=()=>{cleanup();const files=[...$('photos').files];if(files.length>3||files.some(f=>f.size>5*1024*1024||!['image/jpeg','image/png','image/webp'].includes(f.type))){$('photos').value='';return notify('3 tagacha JPG, PNG yoki WebP rasm tanlang. Har biri 5 MB dan kichik bo‘lsin.')}files.forEach(f=>{const u=URL.createObjectURL(f);urls.push(u);const img=document.createElement('img');img.src=u;img.alt='Tanlangan obyekt rasmi';$('preview').append(img)})};
 $('unpaid').oninput=()=>$('unpaid').setCustomValidity('');
